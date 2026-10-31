@@ -323,7 +323,7 @@ function vResult(el){
   const st=RES.pick;
   const sugg=suggestions(st,RES.already,RES.open===0?1:3,RES.weak);
   el.innerHTML=`
-    <div class="scene ripple-anim">${treeSVG([0,2,4,6][st])}</div>
+    <div class="scene ripple-anim">${treeSVG([0,1,2,5][st])}</div>
     <p class="muted" style="margin:0">Your starting point</p>
     <h1>You’re a ${STAGES[st].name}</h1>
     <p>${STAGES[st].line}</p>
@@ -332,7 +332,7 @@ function vResult(el){
       ${["planet","people","prosperity"].map(k=>`<div style="margin-top:12px"><div class="row" style="gap:10px"><span class="mini-char">${CAST[k].svg()}</span><span><b>${CAST[k].label}</b> <span class="small muted">with ${CAST[k].name}</span></span></div><div class="progress" style="margin:4px 0 0"><i style="width:${Math.max(6,Math.round(RES.pct[k]*100))}%;background:${k==="planet"?"var(--teal)":k==="people"?"var(--coral)":"var(--sun)"}"></i></div></div>`).join("")}
       <p class="small" style="margin-top:12px">${CAST[RES.weak].name} has an easy idea for you below.</p></div>`:""}
     <p class="small muted" style="margin-top:18px">Doesn’t feel right? Pick another. You can change it anytime.</p>
-    <div class="stages">${STAGES.map((s,i)=>`<button class="stage${i===st?" on":""}" data-s="${i}" aria-pressed="${i===st}">${treeSVG([0,2,4,6][i],{mini:true})}${s.name}</button>`).join("")}</div>
+    <div class="stages">${STAGES.map((s,i)=>`<button class="stage${i===st?" on":""}" data-s="${i}" aria-pressed="${i===st}">${treeSVG([0,1,2,5][i],{mini:true})}${s.name}</button>`).join("")}</div>
     <div class="section-title"><h2>Fancy trying something?</h2></div>
     <p class="small muted">Only if you want to. Pick one for 7 or 14 days, and we’ll cheer every time you do it.</p>
     ${sugg.map(s=>swCard(s,{compact:true})).join("")}
@@ -506,7 +506,7 @@ function vGarden(){
     </div>
     ${S.already.length?`<div class="panel"><h3>Habits you keep</h3><div class="already">${S.already.map(id=>`<span class="pill ${SW[id].pillar}">${SW[id].title}</span>`).join("")}</div></div>`:""}
     <div class="panel"><h3>Your stage</h3><p class="small muted">This only changes which ideas we show first. Change it whenever you like.</p>
-      <div class="stages">${STAGES.map((s,i)=>`<button class="stage${S.stage===i?" on":""}" data-s="${i}" aria-pressed="${S.stage===i}">${treeSVG([0,2,4,6][i],{mini:true})}${s.name}</button>`).join("")}</div>
+      <div class="stages">${STAGES.map((s,i)=>`<button class="stage${S.stage===i?" on":""}" data-s="${i}" aria-pressed="${S.stage===i}">${treeSVG([0,1,2,5][i],{mini:true})}${s.name}</button>`).join("")}</div>
       ${S.stage!=null?`<p class="small">${STAGES[stage()].line}</p>`:""}
       <div class="actions"><a class="btn ghost sm" href="#quiz" id="redo">${S.quizDone?"Retake the quiz":"Take the quiz"}</a></div>
     </div>
