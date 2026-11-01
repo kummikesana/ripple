@@ -144,7 +144,7 @@ const KEY="ripple-v1";
 function defaults(){return{quizDone:false,browsing:false,stage:null,openness:1,already:[],tries:[],finished:0,logs:[],seeds:0,stageFinishedBase:0,inviteSnooze:"",factsDone:[],stars:0,dailyRead:""}}
 let S=defaults();
 try{const raw=localStorage.getItem(KEY);if(raw)S=Object.assign(defaults(),JSON.parse(raw))}catch(e){}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}queueCloudSave()}
 const pad=n=>String(n).padStart(2,"0");
 function today(){const d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
 function dayDiff(a,b){return Math.round((new Date(b+"T12:00")-new Date(a+"T12:00"))/864e5)}
@@ -681,7 +681,7 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&document.getElement
 
 function signOut(){
   const removeLocal=confirm("Remove this garden from this device too? Choose Cancel to keep it here as a guest garden.");
-  AUTH.user=null;
+  AUTH.user=null;mergedForUser=null;
   if(sb)sb.auth.signOut();
   if(removeLocal){S=defaults();save()}
   render();
@@ -693,9 +693,79 @@ async function deleteAccount(){
   location.hash="today";render();
   alert("Your account and its data are gone. Thanks for growing a garden with us, even for a while. Take care!");
 }
+/* ---------- cloud sync & merge ---------- */
+let cloudSaveTimer=null;
+function queueCloudSave(){
+  if(!sb||!AUTH.user)return;
+  clearTimeout(cloudSaveTimer);
+  cloudSaveTimer=setTimeout(()=>{
+    sb.from("progress").upsert({user_id:AUTH.user.id,data:S,updated_at:new Date().toISOString()}).then(()=>{});
+  },2000);
+}
+function isFreshGuest(s){return !s.quizDone&&!s.browsing&&(s.logs||[]).length===0&&(s.tries||[]).length===0&&(s.already||[]).length===0&&!(s.finished>0)&&!(s.seeds>0)}
+function mergeStates(local,account){
+  const out=defaults();
+  out.quizDone=!!(local.quizDone||account.quizDone);
+  out.browsing=!!(local.browsing||account.browsing);
+  out.stage=local.stage==null?account.stage:(account.stage==null?local.stage:Math.max(local.stage,account.stage));
+  out.openness=account.stage!=null?(account.openness!=null?account.openness:local.openness):(local.openness!=null?local.openness:account.openness);
+  out.already=Array.from(new Set([...(local.already||[]),...(account.already||[])]));
+  const logKey=l=>l.id+"|"+l.d,logMap=new Map();
+  [...(account.logs||[]),...(local.logs||[])].forEach(l=>logMap.set(logKey(l),l));
+  out.logs=Array.from(logMap.values());
+  const tryMap=new Map();
+  [...(account.tries||[]),...(local.tries||[])].forEach(t=>{
+    const ex=tryMap.get(t.id);
+    if(!ex)tryMap.set(t.id,{...t,hits:[...(t.hits||[])]});
+    else{ex.start=t.start<ex.start?t.start:ex.start;ex.days=Math.max(ex.days,t.days);ex.hits=Array.from(new Set([...(ex.hits||[]),...(t.hits||[])]))}
+  });
+  out.tries=Array.from(tryMap.values());
+  out.finished=Math.max(local.finished||0,account.finished||0);
+  out.seeds=Math.max(local.seeds||0,account.seeds||0);
+  out.stageFinishedBase=out.finished;
+  out.inviteSnooze=(local.inviteSnooze||"")>(account.inviteSnooze||"")?local.inviteSnooze:account.inviteSnooze;
+  out.factsDone=Array.from(new Set([...(local.factsDone||[]),...(account.factsDone||[])]));
+  out.stars=Math.max(local.stars||0,account.stars||0);
+  out.dailyRead=(local.dailyRead||"")>(account.dailyRead||"")?local.dailyRead:account.dailyRead;
+  out.asked=Array.from(new Set([...(local.asked||[]),...(account.asked||[])]));
+  out.curTrack=local.curTrack||account.curTrack;
+  const tr={},topics=new Set([...Object.keys(local.tr||{}),...Object.keys(account.tr||{})]);
+  topics.forEach(k=>{
+    const l=(local.tr||{})[k]||{done:[],stars:0,n:5,last:""},a=(account.tr||{})[k]||{done:[],stars:0,n:5,last:""};
+    tr[k]={done:Array.from(new Set([...(l.done||[]),...(a.done||[])])),stars:Math.max(l.stars||0,a.stars||0),n:Math.max(l.n||5,a.n||5),last:(l.last||"")>(a.last||"")?l.last:a.last};
+  });
+  out.tr=tr;
+  return out;
+}
+async function loadOrMergeFromCloud(){
+  if(!sb||!AUTH.user)return;
+  try{
+    const {data,error}=await sb.from("progress").select("data").eq("user_id",AUTH.user.id).maybeSingle();
+    if(error)return;
+    if(!data){
+      await sb.from("progress").upsert({user_id:AUTH.user.id,data:S,updated_at:new Date().toISOString()});
+      return;
+    }
+    const account=data.data||{};
+    S=isFreshGuest(S)?Object.assign(defaults(),account):mergeStates(S,account);
+    try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
+    await sb.from("progress").upsert({user_id:AUTH.user.id,data:S,updated_at:new Date().toISOString()});
+    render();
+  }catch(e){}
+}
+let mergedForUser=null;
+function handleAuthUser(user){
+  AUTH.user=user;
+  if(user){
+    if(mergedForUser!==user.id){mergedForUser=user.id;loadOrMergeFromCloud()}
+  }else{
+    mergedForUser=null;
+  }
+  render();
+}
 if(sb){
-  sb.auth.getSession().then(({data})=>{AUTH.user=data.session?data.session.user:null;render()});
-  sb.auth.onAuthStateChange((event,session)=>{AUTH.user=session?session.user:null;if(event==="SIGNED_IN")closeSignIn();render()});
+  sb.auth.getSession().then(({data})=>handleAuthUser(data.session?data.session.user:null));
+  sb.auth.onAuthStateChange((event,session)=>{if(event==="SIGNED_IN")closeSignIn();handleAuthUser(session?session.user:null)});
 }
 
 render();
