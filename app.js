@@ -141,7 +141,7 @@ function dailyCard(){
 
 /* ---------- state ---------- */
 const KEY="ripple-v1";
-function defaults(){return{quizDone:false,browsing:false,stage:null,openness:1,already:[],tries:[],finished:0,logs:[],seeds:0,stageFinishedBase:0,inviteSnooze:"",factsDone:[],stars:0,dailyRead:""}}
+function defaults(){return{quizDone:false,browsing:false,stage:null,openness:1,already:[],tries:[],finished:0,logs:[],seeds:0,stageFinishedBase:0,inviteSnooze:"",factsDone:[],stars:0,dailyRead:"",signinSnooze:""}}
 let S=defaults();
 try{const raw=localStorage.getItem(KEY);if(raw)S=Object.assign(defaults(),JSON.parse(raw))}catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}queueCloudSave()}
@@ -245,6 +245,12 @@ function vToday(){
       <div class="actions"><button class="btn sun sm" id="inv-yes">Show me bigger ones</button><button class="btn ghost sm" id="inv-no">I’m happy here</button></div></div>`;
   }
 
+  // save-your-garden invite
+  if(!isSignedIn()&&(S.quizDone||S.logs.length>0)&&(!S.signinSnooze||dayDiff(S.signinSnooze,t)>=7)){
+    html+=`<div class="panel invite"><div class="row"><div style="width:60px;flex:none">${penny()}</div><div><h3>Want to keep your garden safe?</h3><p class="small">Sign in to save it and use it on any device. Totally optional.</p></div></div>
+      <div class="actions"><button class="btn sun sm" id="signin-yes">Sign in</button><button class="btn ghost sm" id="signin-no">Maybe later</button></div></div>`;
+  }
+
   // tries
   html+=`<div class="section-title"><h2>What you’re trying</h2></div>`;
   if(!S.tries.length){
@@ -307,6 +313,9 @@ function vToday(){
   const y=document.getElementById("inv-yes"),n=document.getElementById("inv-no");
   if(y)y.onclick=()=>{setStage(Math.min(3,stage()+1));celebrate("prosperity",`Welcome to ${STAGES[stage()].name}! New switches are waiting for you.`,10);S.seeds+=10;save()};
   if(n)n.onclick=()=>{S.inviteSnooze=today();save();render()};
+  const sy=document.getElementById("signin-yes"),sn=document.getElementById("signin-no");
+  if(sy)sy.onclick=openSignIn;
+  if(sn)sn.onclick=()=>{S.signinSnooze=today();save();render()};
 }
 
 /* quiz */
@@ -724,6 +733,7 @@ function mergeStates(local,account){
   out.seeds=Math.max(local.seeds||0,account.seeds||0);
   out.stageFinishedBase=out.finished;
   out.inviteSnooze=(local.inviteSnooze||"")>(account.inviteSnooze||"")?local.inviteSnooze:account.inviteSnooze;
+  out.signinSnooze=(local.signinSnooze||"")>(account.signinSnooze||"")?local.signinSnooze:account.signinSnooze;
   out.factsDone=Array.from(new Set([...(local.factsDone||[]),...(account.factsDone||[])]));
   out.stars=Math.max(local.stars||0,account.stars||0);
   out.dailyRead=(local.dailyRead||"")>(account.dailyRead||"")?local.dailyRead:account.dailyRead;
