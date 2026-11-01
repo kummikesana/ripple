@@ -652,34 +652,16 @@ window.addEventListener("hashchange",()=>{if(location.hash==="#quiz"&&Q.i>=QUIZ.
 let AUTH={user:null};
 function isSignedIn(){return !!AUTH.user}
 function redirectTarget(){return location.origin+location.pathname}
-function renderSignInBody(sentTo){
+function renderSignInBody(){
   const el=document.getElementById("signin-body");
-  if(sentTo){
-    el.innerHTML=`<div style="width:70px;margin:0 auto 10px">${penny()}</div>
-      <h2 id="signin-h" style="text-align:center">Check your inbox</h2>
-      <p class="small muted" style="text-align:center">We sent a link to <b>${esc(sentTo)}</b>. Click it and you’re in, no password needed.</p>`;
-    return;
-  }
   el.innerHTML=`<div style="width:70px;margin:0 auto 10px">${penny()}</div>
     <h2 id="signin-h" style="text-align:center">Sign in</h2>
     <p class="small muted" style="text-align:center">Save your garden so it follows you to any device. Completely optional, nothing changes if you skip it.</p>
     <button class="btn wide" id="signin-google">Continue with Google</button>
-    <p class="small muted" style="text-align:center;margin:14px 0">or</p>
-    <input type="email" id="signin-email" class="field" placeholder="you@example.com" autocomplete="email">
-    <button class="btn ghost wide" id="signin-send">Send me a link</button>
     <p class="small muted" style="text-align:center;margin-top:14px">By signing in you agree to our <a href="privacy.html">privacy page</a>.</p>`;
   document.getElementById("signin-google").onclick=()=>{
     if(!sb){alert("Sign-in isn’t available right now. Please try again later.");return}
     sb.auth.signInWithOAuth({provider:"google",options:{redirectTo:redirectTarget()}});
-  };
-  document.getElementById("signin-send").onclick=async()=>{
-    const email=document.getElementById("signin-email").value.trim();
-    if(!email)return;
-    if(!sb){alert("Sign-in isn’t available right now. Please try again later.");return}
-    const btn=document.getElementById("signin-send");btn.disabled=true;btn.textContent="Sending…";
-    const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:redirectTarget()}});
-    if(error){btn.disabled=false;btn.textContent="Send me a link";alert("Something went wrong sending the link. Mind trying again?")}
-    else renderSignInBody(email);
   };
 }
 function openSignIn(){renderSignInBody();document.getElementById("signin").classList.add("on")}
