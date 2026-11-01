@@ -278,6 +278,11 @@ function vToday(){
   html+=`</div>`;
 
   if(!S.quizDone)html+=`<div class="panel"><h3>Want suggestions that fit you?</h3><p class="small muted">A one-minute quiz helps us pick ideas that suit your life.</p><div class="actions"><a class="btn sm" href="#quiz">Take the quiz</a></div></div>`;
+  html+=`<div class="panel"><h3>Meet the crew</h3>
+    <div class="row" style="margin-top:8px"><div style="width:58px;flex:none">${moss()}</div><p class="small"><b>Moss</b> the turtle looks after the planet: carbon, water, plastic.</p></div>
+    <div class="row"><div style="width:58px;flex:none">${juno()}</div><p class="small"><b>Juno</b> the otter looks after people: fair work, communities, kindness.</p></div>
+    <div class="row"><div style="width:58px;flex:none">${penny()}</div><p class="small"><b>Penny</b> the bee looks after your pocket and local businesses.</p></div>
+  </div>`;
   html+=`<p class="foot">Just browsing is great too. Knowing is the first step.</p>`;
   el.innerHTML=html;
 
@@ -621,11 +626,6 @@ function vGarden(){
       <div class="stages">${STAGES.map((s,i)=>`<button class="stage${S.stage===i?" on":""}" data-s="${i}" aria-pressed="${S.stage===i}">${treeSVG([0,1,2,5][i],{mini:true})}${s.name}</button>`).join("")}</div>
       ${S.stage!=null?`<p class="small">${STAGES[stage()].line}</p>`:""}
       <div class="actions"><a class="btn ghost sm" href="#quiz" id="redo">${S.quizDone?"Retake the quiz":"Take the quiz"}</a></div>
-    </div>
-    <div class="panel"><h3>Meet the crew</h3>
-      <div class="row" style="margin-top:8px"><div style="width:58px;flex:none">${moss()}</div><p class="small"><b>Moss</b> the turtle looks after the planet: carbon, water, plastic.</p></div>
-      <div class="row"><div style="width:58px;flex:none">${juno()}</div><p class="small"><b>Juno</b> the otter looks after people: fair work, communities, kindness.</p></div>
-      <div class="row"><div style="width:58px;flex:none">${penny()}</div><p class="small"><b>Penny</b> the bee looks after your pocket and local businesses.</p></div>
     </div>
     <p class="foot"><button class="link" id="reset">Start over</button><br>Everything is saved on this device only.</p>`;
   el.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>setStage(+b.dataset.s));
