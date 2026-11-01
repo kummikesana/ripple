@@ -490,6 +490,118 @@ function vFacts(){
   bindChips();
 }
 
+/* ask the crew */
+const SUGGEST_URL=""; // paste your free Tally or Google Form link here to collect unanswered questions
+const ASK=[
+ {cat:"buy",q:"Should I buy a new phone or a refurbished one?",kw:["phone","smartphone","iphone","samsung","refurbished","upgrade","mobile","new phone"],
+  chat:[["planet","Most of a phone’s lifetime footprint comes from making it, not charging it. A refurbished phone skips almost all of that."],["people","New phones need mined metals like cobalt, and some of it comes from mines with child labour. Every phone kept in use means a little less digging."],["prosperity","Refurbished phones often cost far less and usually come with a warranty. And if yours just needs a new battery or screen, repairing is cheaper still."]],
+  take:"Keep the one you have as long as it works for you. When it’s time to change, go refurbished.",src:"ADEME; Amnesty International (2016)"},
+ {cat:"buy",q:"Is an electric car really better than a petrol one?",kw:["electric car","ev","evs","tesla","petrol","diesel","hybrid","car","cars","electric vehicle"],
+  chat:[["planet","Building the battery adds emissions at the start, but over its whole life an electric car in Europe usually ends up well ahead of a petrol one. In France, with its low-carbon electricity, the gap is even bigger."],["people","Battery metals raise real mining questions. On the other hand, no exhaust means cleaner air on busy streets, which matters a lot for people living next to them."],["prosperity","It usually costs more to buy and less to run. Support schemes change often, so check what’s available before deciding."]],
+  take:"If you need a car, electric is usually the better choice. Even better is needing the car less, and choosing a smaller one.",src:"ICCT life-cycle studies; ADEME"},
+ {cat:"buy",q:"I’m thinking of a fast fashion haul. Is that bad?",kw:["fast fashion","shein","zara","h&m","primark","haul","cheap clothes","clothes","clothing","dress","fashion"],
+  chat:[["planet","Less than 1% of clothing material gets recycled into new clothes, so most of it ends up burned or in landfill. Pieces that get worn many times spread that impact out."],["people","The people who sew our clothes often earn around 1% of the price. Brands that publish their factory lists and wage data are a good sign."],["prosperity","Cheap per item isn’t always cheap per wear. A €10 top worn twice costs more per wear than a €30 one worn thirty times."]],
+  take:"No guilt. Before buying, ask: will I wear this at least 30 times? Secondhand is a great middle ground.",src:"Ellen MacArthur Foundation (2017); Clean Clothes Campaign"},
+ {cat:"buy",q:"Bottled water or tap water?",kw:["bottled water","bottle","bottles","tap water","water","evian","mineral water","filter"],
+  chat:[["planet","Around a million plastic drinks bottles are bought every minute worldwide. Tap water skips the plastic and the trucks."],["people","Tap water in France is safe and closely monitored. If you don’t like the taste, a jug filter or letting it rest in the fridge helps."],["prosperity","Tap water costs a tiny fraction of bottled, often well over a hundred times less. Over a year that adds up."]],
+  take:"Tap water in a bottle you like. It’s one of the easiest wins there is.",src:"UNEP; French water quality monitoring"},
+ {cat:"buy",q:"Paper, plastic or cotton tote bag?",kw:["bag","bags","tote","tote bag","paper bag","plastic bag","shopping bag","cotton bag"],
+  chat:[["planet","Surprise: a cotton tote has to be reused many times before it beats a thin plastic bag on climate, because growing cotton is resource-heavy. Paper bags also need several uses."],["people","Plastic bags that escape into rivers and the sea cause real harm to communities that depend on them."],["prosperity","The cheapest bag is the one already in your cupboard."]],
+  take:"The best bag is the one you already own. Reuse it as many times as you can, whatever it’s made of.",src:"Danish Environmental Protection Agency (2018)"},
+ {cat:"buy",q:"Is plant-based milk better than cow’s milk?",kw:["milk","oat","oat milk","soy","soya","almond","dairy","plant milk","cheese"],
+  chat:[["planet","Plant milks generally have a lower footprint than dairy milk in emissions, land and water. Oat and soy do well across the board; almond needs more water."],["people","Dairy supports many farming families. Choosing local or farmer-friendly brands helps if you stick with dairy."],["prosperity","Prices are often similar, and supermarket own-brand oat milk can be cheaper."]],
+  take:"Oat or soy for everyday use is an easy swap, and there’s no need to be all-or-nothing.",src:"Poore & Nemecek (2018), via Our World in Data"},
+ {cat:"buy",q:"Are coffee capsules okay?",kw:["coffee","capsule","capsules","nespresso","pods","pod","espresso"],
+  chat:[["planet","Capsules add packaging to every cup. But most of coffee’s footprint is in growing the beans, so not wasting coffee matters even more."],["people","Coffee farmers are often paid very little. Fair-trade or direct-trade beans help them earn more."],["prosperity","Per kilo, capsule coffee is much more expensive than beans or ground coffee."]],
+  take:"A filter or moka pot with fair-trade coffee is a win on all three. If you keep capsules, choose recyclable ones and return them.",src:"Water Footprint Network; Fairtrade"},
+ {cat:"buy",q:"Should I take the train or fly for my holiday?",kw:["flight","flights","fly","flying","plane","train","holiday","vacation","trip","travel","tgv","eurostar"],
+  chat:[["planet","On routes like Paris to Marseille, the train emits a small fraction of the plane’s CO2. For short trips in Europe the difference is huge."],["people","Holidays matter for wellbeing. Spending locally at your destination also supports the people who live there."],["prosperity","Booking trains early is often competitive, and night trains save a hotel night."]],
+  take:"Under about five or six hours by rail, the train usually wins. For longer trips, fewer and longer holidays make a big difference.",src:"ADEME, Impact CO2"},
+ {cat:"buy",q:"Is online shopping worse than going to the store?",kw:["online","amazon","delivery","deliveries","order","ordering","shopping online","returns","parcel","e-commerce","ecommerce"],
+  chat:[["planet","It depends. A delivery van on a full route can beat driving to a shop alone. Express shipping and returns are what really raise the footprint."],["people","Warehouse and delivery workers often face tough targets. Being home for deliveries or using pick-up points makes their day easier too."],["prosperity","Grouping orders and avoiding returns saves money and hassle."]],
+  take:"Order less often, choose standard delivery and pick-up points, and only buy what you’ll keep.",src:"Research on e-commerce emissions; ADEME"},
+ {cat:"buy",q:"Is organic food worth it?",kw:["organic","bio","pesticide","pesticides","organic food"],
+  chat:[["planet","Organic farming uses far fewer synthetic pesticides, which is good for soil, insects and water. Per kilo it isn’t always lower carbon, because yields can be lower."],["people","Fewer pesticides means less exposure for the farmers and workers who handle them every day."],["prosperity","It usually costs more. If budget is tight, focus on what you eat most, and waste less, which saves money for the rest."]],
+  take:"Organic helps nature, but eating more plants, buying in season and wasting less often matter even more.",src:"FAO; Our World in Data"},
+ {cat:"buy",q:"Dishwasher or washing up by hand?",kw:["dishwasher","dishes","washing up","wash dishes","hand washing"],
+  chat:[["planet","A modern dishwasher, run full on the eco programme, often uses less water and energy than washing the same load by hand under a running tap."],["people","It also gives you time back, which counts too."],["prosperity","Skip pre-rinsing under the tap: scrape plates instead and run only full loads."]],
+  take:"Full load, eco mode, no pre-rinse. That’s the sweet spot.",src:"Energy Saving Trust; appliance studies"},
+ {cat:"buy",q:"Does recycling actually work?",kw:["recycling","recycle","recycled","waste","bin","bins","sorting"],
+  chat:[["planet","Glass, metal and paper recycle well. Plastic is harder: much of it can only be recycled a few times, if at all. Reducing and reusing come first."],["people","In many countries waste pickers do much of the recycling work, often without protection. Less waste helps them too."],["prosperity","Deposit-return schemes and refills are making reuse easier and cheaper in more places."]],
+  take:"Yes, recycle, and sort carefully. But the best waste is the waste you never create.",src:"OECD Global Plastics Outlook; UNEP"},
+ {cat:"buy",q:"Are bamboo toothbrushes worth it?",kw:["toothbrush","bamboo","toothpaste"],
+  chat:[["planet","It’s a small but real swap: the handle isn’t plastic. The bristles are usually still nylon, so pull them out before composting the handle."],["people","Not much difference on the people side either way."],["prosperity","Prices are similar, so it costs you nothing to switch."]],
+  take:"A nice small step. If you want a bigger win, a vegetarian meal or a train trip does far more.",src:"General product life-cycle comparisons"},
+ {cat:"buy",q:"Should I buy secondhand furniture?",kw:["furniture","sofa","table","desk","ikea","chair","bed","secondhand","second hand","second-hand","vintage","used"],
+  chat:[["planet","Secondhand furniture skips the wood, metal, foam and shipping that new pieces need. Solid older pieces often last longer too."],["people","Charity shops and resellers often fund social programmes or create local jobs."],["prosperity","It’s usually much cheaper, and good pieces keep their value if you sell them on."]],
+  take:"Secondhand first, new when you really need it, and pick pieces that can be repaired.",src:"General life-cycle evidence; Emmaüs"},
+
+ {cat:"big",q:"What is ESG, simply?",kw:["esg","environmental social governance","what is esg","esg meaning"],
+  chat:[["planet","E is for environment: emissions, water, waste, nature. How a company affects the planet."],["people","S is for social: how it treats workers, suppliers, customers and communities."],["prosperity","G is for governance: how the company is run. Honest reporting, fair pay at the top, no bribery, and a board that actually checks the risks."]],
+  take:"ESG is a way to judge whether a company is managing its impact and risks well, not just its profits. Regulators now check that ESG labels are backed by real numbers.",src:"ESMA; general ESG frameworks"},
+ {cat:"big",q:"What does decarbonising transport mean?",kw:["transport","decarbonisation","decarbonization","decarbonising","decarbonizing","logistics","trucks","shipping","aviation","mobility"],
+  chat:[["planet","Transport makes up around a quarter of Europe’s greenhouse gas emissions. Decarbonising means switching to electric cars and trucks, more rail, and cleaner fuels for ships and planes."],["people","It changes jobs: car factories, fuel stations and repair shops all shift. A ‘just transition’ means retraining workers so nobody is left behind, and cleaner air helps everyone."],["prosperity","It needs big investment in rail, charging and new fuels, but saves on imported oil. Shipping and aviation are the hardest and most expensive to clean up."]],
+  take:"Cars and vans are moving fastest; ships and planes are the hard part. Personally, the biggest lever is choosing train and walking or cycling where you can.",src:"European Environment Agency; IEA"},
+ {cat:"big",q:"What does ESG look like in fashion?",kw:["esg in fashion","esg fashion","fashion esg","esg","sustainable fashion","fashion industry","textile","textiles","garment","garments","apparel"],
+  chat:[["planet","Water for cotton, chemicals for dyeing, and overproduction. Since July 2026, large brands can’t destroy unsold clothes in the EU."],["people","Factory safety and wages. The 2013 Rana Plaza collapse, which killed 1,134 workers, changed how brands are expected to check their suppliers."],["prosperity","Governance means honest claims. Since September 2026, vague words like ‘eco-friendly’ need proof in the EU."]],
+  take:"In interviews, fashion ESG usually comes down to three things: traceability, workers’ rights and honest marketing.",src:"European Commission (ESPR, Directive 2024/825); ILO"},
+ {cat:"big",q:"What is greenwashing?",kw:["greenwashing","greenwash","green claims","green claim","misleading","eco friendly","eco-friendly"],
+  chat:[["planet","It’s when a company makes its environmental impact sound better than it is, with vague words, cherry-picked facts or pretty leaves on the packaging."],["people","It misleads people who are genuinely trying to make better choices, and makes it harder for honest brands to stand out."],["prosperity","It’s now a legal risk. EU rules since September 2026 ban unproven generic claims, and courts have ruled against KLM and TotalEnergies."]],
+  take:"Look for specific, provable claims, like ‘50% recycled polyester’, rather than words like ‘green’ or ‘conscious’.",src:"Directive (EU) 2024/825; Amsterdam District Court (2024); Paris Judicial Court (2025)"},
+ {cat:"big",q:"Do carbon offsets actually work?",kw:["offset","offsets","offsetting","carbon credit","carbon credits","carbon neutral","net zero","neutral"],
+  chat:[["planet","Quality varies hugely. Some projects really remove or avoid carbon; others have been found to overstate their benefit. Cutting emissions first is always more reliable."],["people","Good projects can support local communities. Badly run ones have sometimes harmed the people living on the land."],["prosperity","In the EU, products can no longer be labelled ‘climate neutral’ just because the company bought offsets."]],
+  take:"Offsets can help with what you truly can’t cut, but they’re not a free pass.",src:"Directive (EU) 2024/825; independent research on offset quality"},
+ {cat:"big",q:"What are Scope 3 emissions?",kw:["scope 3","scope three","scope 1","scope 2","value chain","supply chain emissions","emissions scopes"],
+  chat:[["planet","Scope 1 is a company’s own emissions, Scope 2 is its purchased energy, and Scope 3 is everything else in its value chain: suppliers, transport, and how customers use its products."],["people","Scope 3 sits with suppliers and their workers, so reducing it means working closely with them."],["prosperity","It’s usually the biggest chunk by far: companies’ supply chain emissions average about 26 times their operational ones. That’s why procurement teams now matter for climate."]],
+  take:"If you want to work in sustainability, Scope 3 is where most of the work, and many of the jobs, are.",src:"GHG Protocol; CDP & BCG (2024)"},
+ {cat:"big",q:"What is supply chain due diligence (CSDDD)?",kw:["csddd","cs3d","due diligence","human rights","supply chain law","supplier","suppliers"],
+  chat:[["people","It means checking your suppliers for human rights problems like forced labour or unsafe work, and fixing them."],["planet","It also covers environmental harm, like pollution or deforestation linked to your suppliers."],["prosperity","After the Omnibus I changes, the EU law covers companies with over 5,000 employees and €1.5 billion turnover, starting in July 2029."]],
+  take:"Big companies are expected to know who makes their products, and to act when something’s wrong.",src:"Directive (EU) 2026/470 (Omnibus I)"},
+ {cat:"big",q:"What is the circular economy?",kw:["circular","circular economy","circularity","reuse","repair","resale"],
+  chat:[["planet","Instead of take, make, throw away, products are designed to be used longer, repaired, shared and finally recycled."],["people","Repair shops, resale and refurbishing create local jobs that can’t be shipped abroad."],["prosperity","Companies are finding new revenue in resale, rental and repair, and new EU rules push products to last longer."]],
+  take:"Keeping things in use is the heart of it. Every repair and resale is a small piece of the circular economy.",src:"Ellen MacArthur Foundation; European Commission"},
+ {cat:"big",q:"What is a just transition?",kw:["just transition","jobs","workers","coal","fair transition"],
+  chat:[["people","It means making the move to a low-carbon economy fair for workers and communities, like coal regions or car factory towns, through retraining and new local jobs."],["planet","Climate action lasts longer when people don’t feel left behind by it."],["prosperity","Funds like the EU’s Just Transition Fund pay for retraining and new industries in the regions most affected."]],
+  take:"Cutting emissions and caring for workers go together. That balance is what ‘just’ means here.",src:"European Commission, Just Transition Fund; ILO"}
+];
+function norm(t){return (t||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[’']/g,"").replace(/[^a-z0-9& -]/g," ").replace(/\s+/g," ").trim()}
+function matchAsk(text){
+  const base=norm(text),n=" "+base+" ",n2=" "+base.split(" ").map(w=>w.length>3?w.replace(/s$/,""):w).join(" ")+" ";
+  return ASK.map((a,i)=>{let s=0;a.kw.forEach(k=>{const kk=norm(k);if(n.includes(" "+kk+" ")||n2.includes(" "+kk+" ")||(kk.length>5&&n.includes(kk)))s+=kk.includes(" ")?3:2});return{i,s}}).filter(x=>x.s>0).sort((x,y)=>y.s-x.s);
+}
+const esc=t=>(t||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let ASKQ={text:"",i:null,miss:false,rel:[]};
+function vAsk(){
+  const el=document.getElementById("v-ask");
+  let body="";
+  if(ASKQ.i!=null){
+    const a=ASK[ASKQ.i];
+    body=`<div class="panel convo">${ASKQ.text&&norm(ASKQ.text)!==norm(a.q)?`<p class="small muted" style="margin:0">You asked: “${esc(ASKQ.text)}”. Here’s the closest one we’ve answered:</p>`:""}
+      <h3 style="margin-top:6px">${a.q}</h3>
+      ${a.chat.map(([w,t])=>`<div class="bubble-row"><span class="mini-char">${CAST[w].svg()}</span><div class="bubble ${w}"><b>${CAST[w].name}</b> <span class="small muted">on ${CAST[w].label.toLowerCase()}</span><p>${t}</p></div></div>`).join("")}
+      <div class="try-this"><b>The crew’s take:</b> ${a.take}</div><p class="src">Sources: ${a.src}</p></div>
+      ${ASKQ.rel.length?`<p class="small muted">Related questions</p><div class="qchips">${ASKQ.rel.map(i=>`<button class="chip" data-q="${i}">${ASK[i].q}</button>`).join("")}</div>`:""}`;
+  }else if(ASKQ.miss){
+    body=`<div class="panel convo"><p class="small muted" style="margin:0">You asked: “${esc(ASKQ.text)}”</p>
+      <div class="bubble-row"><span class="mini-char">${moss()}</span><div class="bubble planet"><b>Moss</b><p>Hmm, that one’s new to us!</p></div></div>
+      <div class="bubble-row"><span class="mini-char">${juno()}</span><div class="bubble people"><b>Juno</b><p>We’d rather say we don’t know yet than guess and get it wrong.</p></div></div>
+      <div class="bubble-row"><span class="mini-char">${penny()}</span><div class="bubble prosperity"><b>Penny</b><p>${SUGGEST_URL?"Send it our way and we’ll research it for the next update.":"We’re collecting new questions soon. Meanwhile, try one of the questions below."}</p></div></div>
+      ${SUGGEST_URL?`<div class="actions"><a class="btn sm" href="${SUGGEST_URL}" target="_blank" rel="noopener">Send us this question</a></div>`:""}</div>`;
+  }
+  const chipsFor=c=>ASK.map((a,i)=>a.cat===c?`<button class="chip" data-q="${i}">${a.q}</button>`:"").join("");
+  el.innerHTML=`<h1>Ask the crew</h1>
+    <p class="muted">Wondering if something’s a good choice? Moss, Juno and Penny each look at it from their side: planet, people and prosperity.</p>
+    <div class="cast" style="margin:6px 0 4px">${moss()}${juno()}${penny()}</div>
+    <form class="ask-box" id="ask-form"><input id="ask-in" type="text" placeholder="e.g. Should I buy a refurbished phone?" aria-label="Your question" value="${esc(ASKQ.text)}" autocomplete="off"><button class="btn" type="submit">Ask</button></form>
+    ${body}
+    <div class="section-title"><h3>Thinking of buying…</h3></div><div class="qchips">${chipsFor("buy")}</div>
+    <div class="section-title"><h3>Bigger topics</h3></div><div class="qchips">${chipsFor("big")}</div>
+    <p class="foot">Answers are written by the Ripple team from public sources, not generated live by AI.</p>`;
+  const show=i=>{ASKQ.i=i;ASKQ.miss=false;S.asked=S.asked||[];if(!S.asked.includes(i)){S.asked.push(i);S.seeds+=1;save()}vAsk();el.querySelector(".convo")?.scrollIntoView({behavior:"smooth",block:"start"})};
+  document.getElementById("ask-form").onsubmit=e=>{e.preventDefault();const t=document.getElementById("ask-in").value.trim();if(!t)return;ASKQ.text=t;const m=matchAsk(t);if(m.length){ASKQ.rel=m.slice(1,3).map(x=>x.i);show(m[0].i)}else{ASKQ.i=null;ASKQ.miss=true;ASKQ.rel=[];vAsk()}};
+  el.querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>{ASKQ.text="";ASKQ.rel=[];show(+b.dataset.q)});
+}
+
 /* garden */
 function vGarden(){
   const el=document.getElementById("v-garden");
@@ -522,7 +634,7 @@ function vGarden(){
 }
 
 /* ---------- router ---------- */
-const ROUTES=["today","quiz","switches","facts","garden"];
+const ROUTES=["today","quiz","switches","facts","ask","garden"];
 function render(){
   let r=location.hash.slice(1);if(!ROUTES.includes(r))r="today";
   ROUTES.forEach(x=>document.getElementById("v-"+x).classList.toggle("on",x===r));
@@ -530,7 +642,7 @@ function render(){
   document.querySelector("nav.tabs").style.display=r==="quiz"?"none":"";
   document.querySelector(".topbar").style.display=r==="quiz"?"none":"";
   document.getElementById("back").style.visibility=r==="today"?"hidden":"visible";
-  if(r==="today")vToday();if(r==="quiz")vQuiz();if(r==="switches")vSwitches();if(r==="garden")vGarden();if(r==="facts")vFacts();
+  if(r==="today")vToday();if(r==="quiz")vQuiz();if(r==="switches")vSwitches();if(r==="garden")vGarden();if(r==="facts")vFacts();if(r==="ask")vAsk();
 }
 document.getElementById("back").onclick=()=>{location.hash="today"};
 window.addEventListener("hashchange",()=>{if(location.hash==="#quiz"&&Q.i>=QUIZ.length&&!RES){Q={i:0,ans:[]}}render();window.scrollTo(0,0)});

@@ -142,6 +142,17 @@ nav.tabs a.on{color:var(--teal)}
 .foot{margin-top:28px;text-align:center;color:var(--muted);font-size:.9rem}
 .mini-char{width:46px;flex:none;display:block}
 .mini-char svg{width:100%;height:auto;display:block}
+.ask-box{display:flex;gap:8px;margin:14px 0}
+.ask-box input{flex:1;min-width:0;border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:14px;padding:12px 14px;font:inherit}
+.bubble-row{display:flex;gap:10px;align-items:flex-start;margin:12px 0}
+.bubble{flex:1;background:var(--surface);border:2px solid var(--line);border-radius:4px 18px 18px 18px;padding:9px 13px}
+.bubble p{margin:.2em 0 0}
+.bubble.planet{border-color:color-mix(in srgb,var(--teal) 50%,var(--line))}
+.bubble.people{border-color:color-mix(in srgb,var(--coral) 50%,var(--line))}
+.bubble.prosperity{border-color:color-mix(in srgb,var(--sun) 60%,var(--line))}
+.qchips{display:flex;flex-wrap:wrap;gap:8px}
+.qchips .chip{text-align:left;font-weight:600}
+nav.tabs a{font-size:.78rem}
 .daily{border-color:var(--teal)}
 .daily .who{display:flex;gap:12px;align-items:flex-start}
 .daily .who svg{width:72px;flex:none}
