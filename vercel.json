@@ -4,6 +4,9 @@
     { "source": "/(.*)", "headers": [
       { "key": "X-Content-Type-Options", "value": "nosniff" },
       { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+    ]},
+    { "source": "/(app.js|styles.css|index.html)", "headers": [
+      { "key": "Cache-Control", "value": "no-cache" }
     ]}
   ]
 }
