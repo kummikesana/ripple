@@ -651,7 +651,7 @@ window.addEventListener("hashchange",()=>{if(location.hash==="#quiz"&&Q.i>=QUIZ.
 /* ---------- optional sign-in ---------- */
 let AUTH={user:null};
 function isSignedIn(){return !!AUTH.user}
-function redirectTarget(){return location.origin+location.pathname+"#garden"}
+function redirectTarget(){return location.origin+location.pathname}
 function renderSignInBody(sentTo){
   const el=document.getElementById("signin-body");
   if(sentTo){
@@ -775,7 +775,7 @@ function handleAuthUser(user){
 }
 if(sb){
   sb.auth.getSession().then(({data})=>handleAuthUser(data.session?data.session.user:null));
-  sb.auth.onAuthStateChange((event,session)=>{if(event==="SIGNED_IN")closeSignIn();handleAuthUser(session?session.user:null)});
+  sb.auth.onAuthStateChange((event,session)=>{if(event==="SIGNED_IN"){closeSignIn();location.hash="garden"}handleAuthUser(session?session.user:null)});
 }
 
 render();
