@@ -525,7 +525,7 @@ const ASK=[
   take:"Organic helps nature, but eating more plants, buying in season and wasting less often matter even more.",src:"FAO; Our World in Data"},
  {cat:"buy",q:"Dishwasher or washing up by hand?",kw:["dishwasher","dishes","washing up","wash dishes","hand washing"],
   chat:[["planet","A modern dishwasher, run full on the eco programme, often uses less water and energy than washing the same load by hand under a running tap."],["people","It also gives you time back, which counts too."],["prosperity","Skip pre-rinsing under the tap: scrape plates instead and run only full loads."]],
-  take:"Full load, eco mode, no pre-rinse. That’s the sweet spot.",src:"Energy Saving Trust; appliance studies"},
+  take:"Full load, eco mode, no pre-rinse. That’s the sweet spot.",src:"Which?; University of Michigan"},
  {cat:"buy",q:"Does recycling actually work?",kw:["recycling","recycle","recycled","waste","bin","bins","sorting"],
   chat:[["planet","Glass, metal and paper recycle well. Plastic is harder: much of it can only be recycled a few times, if at all. Reducing and reusing come first."],["people","In many countries waste pickers do much of the recycling work, often without protection. Less waste helps them too."],["prosperity","Deposit-return schemes and refills are making reuse easier and cheaper in more places."]],
   take:"Yes, recycle, and sort carefully. But the best waste is the waste you never create.",src:"OECD Global Plastics Outlook; UNEP"},
