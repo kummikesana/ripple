@@ -4,8 +4,8 @@
    devices. The anon key below is safe to ship in the browser only because
    Supabase row level security restricts every row to its own owner (see
    the setup guide). Never put the service role key here or in the repo. */
-const SUPABASE_URL="";
-const SUPABASE_ANON_KEY="";
+const SUPABASE_URL="https://pfglxxydmxnvcyjapjte.supabase.co";
+const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmZ2x4eHlkbXhudmN5amFwanRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM1MzQyMzEsImV4cCI6MjEwOTExMDIzMX0.M-OemMsV449NXbNYhip6_e4NM8KzdAZcp3QDYZCG6Bc";
 const sb=(SUPABASE_URL&&SUPABASE_ANON_KEY&&window.supabase)?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
 
 /* ---------- characters ---------- */
