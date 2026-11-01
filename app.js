@@ -644,6 +644,21 @@ function render(){
   document.querySelector(".topbar").style.display=r==="quiz"?"none":"";
   document.getElementById("back").style.visibility=r==="today"?"hidden":"visible";
   if(r==="today")vToday();if(r==="quiz")vQuiz();if(r==="switches")vSwitches();if(r==="garden")vGarden();if(r==="facts")vFacts();if(r==="ask")vAsk();
+  renderAcctBadge();
+}
+function renderAcctBadge(){
+  const b=document.getElementById("acct-badge");if(!b)return;
+  const signedIn=isSignedIn();
+  b.classList.toggle("on",signedIn);
+  if(signedIn){
+    b.innerHTML="";b.textContent=(AUTH.user.email||"?")[0].toUpperCase();
+    b.setAttribute("aria-label","Account: "+AUTH.user.email);
+    b.onclick=()=>{location.hash="garden"};
+  }else{
+    b.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>`;
+    b.setAttribute("aria-label","Sign in");
+    b.onclick=openSignIn;
+  }
 }
 document.getElementById("back").onclick=()=>{location.hash="today"};
 window.addEventListener("hashchange",()=>{if(location.hash==="#quiz"&&Q.i>=QUIZ.length&&!RES){Q={i:0,ans:[]}}render();window.scrollTo(0,0)});
