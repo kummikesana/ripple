@@ -1,3 +1,13 @@
+/* ---------- optional cloud sign-in ----------
+   Sign-in is entirely optional. Guests use Ripple fully from localStorage,
+   exactly as before. Signing in just lets a garden follow someone across
+   devices. The anon key below is safe to ship in the browser only because
+   Supabase row level security restricts every row to its own owner (see
+   the setup guide). Never put the service role key here or in the repo. */
+const SUPABASE_URL="";
+const SUPABASE_ANON_KEY="";
+const sb=(SUPABASE_URL&&SUPABASE_ANON_KEY&&window.supabase)?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
+
 /* ---------- characters ---------- */
 function moss(){return `<svg viewBox="0 0 120 100" aria-label="Moss the turtle" role="img"><ellipse cx="58" cy="90" rx="42" ry="6" fill="currentColor" opacity=".10"/><ellipse cx="30" cy="80" rx="13" ry="7" fill="#7CC4A0"/><ellipse cx="84" cy="80" rx="13" ry="7" fill="#7CC4A0"/><circle cx="97" cy="52" r="16" fill="#8FD3B0"/><circle cx="100" cy="47" r="3.4" fill="#163330"/><circle cx="101.2" cy="45.8" r="1.1" fill="#fff"/><path d="M94 57 q5 4.5 10 0" stroke="#163330" stroke-width="2.2" fill="none" stroke-linecap="round"/><circle cx="106" cy="54" r="2.6" fill="#E8705E" opacity=".55"/><path d="M14 74 Q16 26 56 24 Q92 26 92 74 Z" fill="#258773"/><path d="M40 46 l9-7 h13 l9 7 -4 12 h-23z" fill="#3FA88F"/><path d="M22 66 l6-12 h10 l4 12z M72 66 l4-12 h8 l4 12z" fill="#3FA88F"/><path d="M10 74 h86" stroke="#1D6B5B" stroke-width="6" stroke-linecap="round"/></svg>`}
 function juno(){return `<svg viewBox="0 0 120 100" aria-label="Juno the otter" role="img"><ellipse cx="60" cy="94" rx="36" ry="5" fill="currentColor" opacity=".10"/><ellipse cx="60" cy="70" rx="31" ry="25" fill="#9A6B4F"/><ellipse cx="60" cy="74" rx="20" ry="17" fill="#E9CDAE"/><circle cx="41" cy="20" r="6.5" fill="#7E5640"/><circle cx="79" cy="20" r="6.5" fill="#7E5640"/><circle cx="60" cy="38" r="24" fill="#9A6B4F"/><ellipse cx="60" cy="47" rx="15" ry="11" fill="#E9CDAE"/><circle cx="51" cy="35" r="3.4" fill="#2B1E17"/><circle cx="69" cy="35" r="3.4" fill="#2B1E17"/><circle cx="52.2" cy="33.8" r="1.1" fill="#fff"/><circle cx="70.2" cy="33.8" r="1.1" fill="#fff"/><ellipse cx="60" cy="43" rx="4.2" ry="3" fill="#2B1E17"/><path d="M55 49 q5 4 10 0" stroke="#2B1E17" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M47 46 l-10 -2 M47 49 l-10 2 M73 46 l10 -2 M73 49 l10 2" stroke="#7E5640" stroke-width="1.4" stroke-linecap="round"/><path d="M60 82 c-9-6 -12-12 -7-15 c3-2 6 0 7 2 c1-2 4-4 7-2 c5 3 2 9 -7 15z" fill="#E8705E"/><ellipse cx="47" cy="72" rx="7" ry="5" fill="#7E5640"/><ellipse cx="73" cy="72" rx="7" ry="5" fill="#7E5640"/></svg>`}
