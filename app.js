@@ -637,10 +637,14 @@ function vGarden(){
       ${S.stage!=null?`<p class="small">${STAGES[stage()].line}</p>`:""}
       <div class="actions"><a class="btn ghost sm" href="#quiz" id="redo">${S.quizDone?"Retake the quiz":"Take the quiz"}</a></div>
     </div>
-    <p class="foot"><button class="link" id="reset">Start over</button><br>Everything is saved on this device only.</p>`;
+    <div class="panel">${isSignedIn()?`<h3>Account</h3><p class="small">Saved to <b>${esc(AUTH.user.email)}</b>. It’ll follow you to any device you sign into.</p><div class="actions"><button class="btn ghost sm" id="acct-signout">Sign out</button><button class="link small" id="acct-delete">Delete my account</button></div>`:`<h3>Keep this safe</h3><p class="small muted">Sign in and your garden follows you to any device. Totally optional, nothing changes if you skip it.</p><button class="btn sm" id="acct-signin">Sign in</button>`}</div>
+    <p class="foot"><button class="link" id="reset">Start over</button><br>${isSignedIn()?"Saved to your account, and on this device.":"Everything is saved on this device only."}</p>`;
   el.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>setStage(+b.dataset.s));
   document.getElementById("redo").onclick=()=>{Q={i:0,ans:[]};RES=null};
   document.getElementById("reset").onclick=()=>{if(confirm("Start over? This clears your garden, tries and choices on this device.")){S=defaults();save();location.hash="today";render()}};
+  const asi=document.getElementById("acct-signin");if(asi)asi.onclick=openSignIn;
+  const aso=document.getElementById("acct-signout");if(aso)aso.onclick=signOut;
+  const adl=document.getElementById("acct-delete");if(adl)adl.onclick=deleteAccount;
 }
 
 /* ---------- router ---------- */
@@ -656,4 +660,64 @@ function render(){
 }
 document.getElementById("back").onclick=()=>{location.hash="today"};
 window.addEventListener("hashchange",()=>{if(location.hash==="#quiz"&&Q.i>=QUIZ.length&&!RES){Q={i:0,ans:[]}}render();window.scrollTo(0,0)});
+
+/* ---------- optional sign-in ---------- */
+let AUTH={user:null};
+function isSignedIn(){return !!AUTH.user}
+function redirectTarget(){return location.origin+location.pathname+"#garden"}
+function renderSignInBody(sentTo){
+  const el=document.getElementById("signin-body");
+  if(sentTo){
+    el.innerHTML=`<div style="width:70px;margin:0 auto 10px">${penny()}</div>
+      <h2 id="signin-h" style="text-align:center">Check your inbox</h2>
+      <p class="small muted" style="text-align:center">We sent a link to <b>${esc(sentTo)}</b>. Click it and you’re in, no password needed.</p>`;
+    return;
+  }
+  el.innerHTML=`<div style="width:70px;margin:0 auto 10px">${penny()}</div>
+    <h2 id="signin-h" style="text-align:center">Sign in</h2>
+    <p class="small muted" style="text-align:center">Save your garden so it follows you to any device. Completely optional, nothing changes if you skip it.</p>
+    <button class="btn wide" id="signin-google">Continue with Google</button>
+    <p class="small muted" style="text-align:center;margin:14px 0">or</p>
+    <input type="email" id="signin-email" class="field" placeholder="you@example.com" autocomplete="email">
+    <button class="btn ghost wide" id="signin-send">Send me a link</button>
+    <p class="small muted" style="text-align:center;margin-top:14px">By signing in you agree to our <a href="privacy.html">privacy page</a>.</p>`;
+  document.getElementById("signin-google").onclick=()=>{
+    if(!sb){alert("Sign-in isn’t available right now. Please try again later.");return}
+    sb.auth.signInWithOAuth({provider:"google",options:{redirectTo:redirectTarget()}});
+  };
+  document.getElementById("signin-send").onclick=async()=>{
+    const email=document.getElementById("signin-email").value.trim();
+    if(!email)return;
+    if(!sb){alert("Sign-in isn’t available right now. Please try again later.");return}
+    const btn=document.getElementById("signin-send");btn.disabled=true;btn.textContent="Sending…";
+    const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:redirectTarget()}});
+    if(error){btn.disabled=false;btn.textContent="Send me a link";alert("Something went wrong sending the link. Mind trying again?")}
+    else renderSignInBody(email);
+  };
+}
+function openSignIn(){renderSignInBody();document.getElementById("signin").classList.add("on")}
+function closeSignIn(){document.getElementById("signin").classList.remove("on")}
+document.getElementById("signin-close").onclick=closeSignIn;
+document.getElementById("signin").addEventListener("click",e=>{if(e.target.id==="signin")closeSignIn()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&document.getElementById("signin").classList.contains("on"))closeSignIn()});
+
+function signOut(){
+  const removeLocal=confirm("Remove this garden from this device too? Choose Cancel to keep it here as a guest garden.");
+  AUTH.user=null;
+  if(sb)sb.auth.signOut();
+  if(removeLocal){S=defaults();save()}
+  render();
+}
+async function deleteAccount(){
+  if(!confirm("Delete your account? This permanently removes your saved garden from our servers, and it can’t be undone."))return;
+  if(sb){await sb.rpc("delete_my_account");await sb.auth.signOut()}
+  AUTH.user=null;S=defaults();save();
+  location.hash="today";render();
+  alert("Your account and its data are gone. Thanks for growing a garden with us, even for a while. Take care!");
+}
+if(sb){
+  sb.auth.getSession().then(({data})=>{AUTH.user=data.session?data.session.user:null;render()});
+  sb.auth.onAuthStateChange((event,session)=>{AUTH.user=session?session.user:null;if(event==="SIGNED_IN")closeSignIn();render()});
+}
+
 render();
