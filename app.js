@@ -447,10 +447,10 @@ const BASICS=[
 ];
 const TRACKS={
  mix:{name:"Everyday life",who:"planet",facts:(()=>{const b=[2,0,1,5,4,3].map(i=>BASICS[i]),f=[2,4,0,7,11,9,5,6,3,8,10,1].map(i=>FACTS[i]),o=[];for(let i=0;i<Math.max(b.length,f.length);i++){if(b[i])o.push(b[i]);if(f[i])o.push(f[i])}return o})()},
+ pol:{name:"Policies",who:"planet",facts:POLICY},
  mkt:{name:"Marketing & greenwashing",who:"people",facts:MKT},
  sc:{name:"Supply chain & procurement",who:"prosperity",facts:SC},
- fin:{name:"ESG & finance",who:"prosperity",facts:FIN},
- pol:{name:"Policies",who:"planet",facts:POLICY}
+ fin:{name:"ESG & finance",who:"prosperity",facts:FIN}
 };
 const CHECKED="November 2026";
 function TS(k){S.tr=S.tr||{};if(!S.tr[k]){S.tr[k]={done:[],stars:0,n:5,last:""};if(k==="life"&&S.factsDone&&S.factsDone.length){S.tr[k].done=S.factsDone.slice();S.tr[k].stars=S.stars||0;S.tr[k].n=Math.max(5,S.factsDone.length)}}return S.tr[k]}
