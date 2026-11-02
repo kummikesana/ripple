@@ -407,11 +407,18 @@ function vSwitches(){
   const st=stage();
   const list=SWITCHES.filter(s=>CAT==="all"||s.cat===CAT);
   const fit=list.filter(s=>s.stage<=st),later=list.filter(s=>s.stage>st);
-  const paginate=CAT==="all",shownFit=paginate?fit.slice(0,SWSHOW):fit;
+  const paginate=CAT==="all";
   let html="";
-  if(fit.length)html+=(S.quizDone?`<p class="small muted">Picked for a ${STAGES[st].name}</p>`:"")+shownFit.map(s=>swCard(s)).join("");
-  if(paginate&&SWSHOW<fit.length)html+=`<button class="btn ghost wide" id="sw-more">Load more</button>`;
-  if(later.length)html+=`<div class="section-title"><h3>Bigger steps for later</h3></div><p class="small muted">Here whenever you’re curious. No rush.</p>`+later.map(s=>swCard(s)).join("");
+  if(paginate){
+    const full=fit.concat(later),shown=full.slice(0,SWSHOW);
+    const shownFit=shown.slice(0,fit.length),shownLater=shown.slice(fit.length);
+    if(shownFit.length)html+=(S.quizDone?`<p class="small muted">Picked for a ${STAGES[st].name}</p>`:"")+shownFit.map(s=>swCard(s)).join("");
+    if(shownLater.length)html+=`<div class="section-title"><h3>Bigger steps for later</h3></div><p class="small muted">Here whenever you’re curious. No rush.</p>`+shownLater.map(s=>swCard(s)).join("");
+    if(SWSHOW<full.length)html+=`<button class="btn ghost wide" id="sw-more">Load more</button>`;
+  }else{
+    if(fit.length)html+=(S.quizDone?`<p class="small muted">Picked for a ${STAGES[st].name}</p>`:"")+fit.map(s=>swCard(s)).join("");
+    if(later.length)html+=`<div class="section-title"><h3>Bigger steps for later</h3></div><p class="small muted">Here whenever you’re curious. No rush.</p>`+later.map(s=>swCard(s)).join("");
+  }
   const box=document.getElementById("swlist");box.innerHTML=html;
   box.querySelectorAll("[data-try]").forEach(b=>b.onclick=()=>{const [id,d]=b.dataset.try.split("|");startTry(id,+d)});
   box.querySelectorAll("[data-log]").forEach(b=>b.onclick=()=>logIt(b.dataset.log));
