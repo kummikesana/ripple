@@ -220,8 +220,11 @@ function vToday(){
       <div class="scene ripple-anim">${treeSVG(0)}</div>
       <h1>Hi, welcome to Ripple</h1>
       <p class="muted">Small choices ripple out to people, the planet and your pocket. No pressure, no guilt. Just ideas that fit your life, and a little cheering when you try one.</p>
-      <div class="row" style="margin:18px 0 22px"><div class="cast">${moss()}${juno()}${penny()}</div></div>
-      <p class="small muted">Moss looks after the planet, Juno looks after people, and Penny looks after your pocket.</p>
+      <div class="trio" style="margin:18px 0 22px">
+        <div class="trio-item">${moss()}<p class="small muted"><b>Moss</b><br>Planet</p></div>
+        <div class="trio-item">${juno()}<p class="small muted"><b>Juno</b><br>People</p></div>
+        <div class="trio-item">${penny()}<p class="small muted"><b>Penny</b><br>Pocket</p></div>
+      </div>
       <div style="display:grid;gap:10px;margin-top:16px">
         <a class="btn wide" href="#quiz" id="go-quiz">Find my starting point</a>
         <button class="btn ghost wide" id="go-browse">Just look around</button>

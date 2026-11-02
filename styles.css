@@ -64,6 +64,10 @@ button{font:inherit;color:inherit;cursor:pointer}
 /* cast */
 .cast{display:flex;gap:4px;align-items:flex-end}
 .cast svg{width:64px;height:auto}
+.trio{display:flex;gap:10px}
+.trio-item{flex:1;display:flex;flex-direction:column;align-items:center;text-align:center}
+.trio-item svg{width:64px;height:auto}
+.trio-item p{margin:4px 0 0;line-height:1.25}
 .speech{position:relative;background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:12px 14px;margin-left:8px;font-weight:600}
 .speech::before{content:"";position:absolute;left:-10px;bottom:16px;border:8px solid transparent;border-right-color:var(--line)}
 .row{display:flex;gap:10px;align-items:center}
