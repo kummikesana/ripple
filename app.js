@@ -140,7 +140,7 @@ function dailyCard(){
 
 /* ---------- state ---------- */
 const KEY="ripple-v1";
-function defaults(){return{quizDone:false,browsing:false,stage:null,openness:1,already:[],tries:[],finished:0,logs:[],seeds:0,stageFinishedBase:0,inviteSnooze:"",factsDone:[],stars:0,dailyRead:"",signinSnooze:""}}
+function defaults(){return{quizDone:false,browsing:false,stage:null,openness:1,already:[],tries:[],finished:0,logs:[],seeds:0,stageFinishedBase:0,inviteSnooze:"",factsDone:[],stars:0,dailyRead:"",signinSnooze:"",installSnooze:""}}
 let S=defaults();
 try{const raw=localStorage.getItem(KEY);if(raw)S=Object.assign(defaults(),JSON.parse(raw))}catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}queueCloudSave()}
@@ -257,6 +257,17 @@ function vToday(){
       <div class="actions"><button class="btn sun sm" id="signin-yes">Sign in</button><button class="btn ghost sm" id="signin-no">Maybe later</button></div></div>`;
   }
 
+  // install prompt
+  if(!isStandalone()&&(deferredInstallPrompt||isIOS())&&(S.quizDone||S.logs.length>0)&&(!S.installSnooze||dayDiff(S.installSnooze,t)>=7)){
+    if(deferredInstallPrompt){
+      html+=`<div class="panel invite"><div class="row"><div style="width:60px;flex:none">${moss()}</div><div><h3>Keep Ripple handy</h3><p class="small">Install it like an app, right on your home screen. No app store needed.</p></div></div>
+        <div class="actions"><button class="btn sun sm" id="install-yes">Install</button><button class="btn ghost sm" id="install-no">Maybe later</button></div></div>`;
+    }else{
+      html+=`<div class="panel invite"><div class="row"><div style="width:60px;flex:none">${moss()}</div><div><h3>Keep Ripple handy</h3><p class="small">Add it to your home screen: tap the Share icon, then “Add to Home Screen”.</p></div></div>
+        <div class="actions"><button class="btn ghost sm" id="install-no">Got it</button></div></div>`;
+    }
+  }
+
   // tries
   html+=`<div class="section-title"><h2>What you’re trying</h2></div>`;
   if(!S.tries.length){
@@ -322,6 +333,15 @@ function vToday(){
   const sy=document.getElementById("signin-yes"),sn=document.getElementById("signin-no");
   if(sy)sy.onclick=openSignIn;
   if(sn)sn.onclick=()=>{S.signinSnooze=today();save();render()};
+  const iy=document.getElementById("install-yes"),ino=document.getElementById("install-no");
+  if(iy)iy.onclick=async()=>{
+    if(!deferredInstallPrompt)return;
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt=null;
+    render();
+  };
+  if(ino)ino.onclick=()=>{S.installSnooze=today();save();render()};
 }
 
 /* quiz */
@@ -746,6 +766,7 @@ function mergeStates(local,account){
   out.stageFinishedBase=out.finished;
   out.inviteSnooze=(local.inviteSnooze||"")>(account.inviteSnooze||"")?local.inviteSnooze:account.inviteSnooze;
   out.signinSnooze=(local.signinSnooze||"")>(account.signinSnooze||"")?local.signinSnooze:account.signinSnooze;
+  out.installSnooze=(local.installSnooze||"")>(account.installSnooze||"")?local.installSnooze:account.installSnooze;
   out.factsDone=Array.from(new Set([...(local.factsDone||[]),...(account.factsDone||[])]));
   out.stars=Math.max(local.stars||0,account.stars||0);
   out.dailyRead=(local.dailyRead||"")>(account.dailyRead||"")?local.dailyRead:account.dailyRead;
@@ -789,6 +810,13 @@ if(sb){
   sb.auth.getSession().then(({data})=>handleAuthUser(data.session?data.session.user:null));
   sb.auth.onAuthStateChange((event,session)=>{if(event==="SIGNED_IN"){closeSignIn();location.hash="garden"}handleAuthUser(session?session.user:null)});
 }
+
+/* ---------- install prompt ---------- */
+let deferredInstallPrompt=null;
+function isStandalone(){return window.matchMedia("(display-mode: standalone)").matches||window.navigator.standalone===true}
+function isIOS(){const ua=navigator.userAgent;if(/Android/.test(ua))return false;return /iPad|iPhone|iPod/.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1)}
+window.addEventListener("beforeinstallprompt",(e)=>{e.preventDefault();deferredInstallPrompt=e;render()});
+window.addEventListener("appinstalled",()=>{deferredInstallPrompt=null;render()});
 
 render();
 
