@@ -160,10 +160,20 @@ nav.tabs a.on{color:var(--teal)}
 .confetti{position:fixed;inset:0;pointer-events:none;z-index:1;overflow:hidden}
 .confetti i{position:absolute;top:-20px;width:10px;height:14px;border-radius:3px;animation:fall 1.8s ease-in forwards}
 @keyframes fall{to{transform:translateY(110vh) rotate(540deg);opacity:.6}}
+.bee-body{animation:bob 2.2s ease-in-out infinite}
+.wing{animation:flutter .5s ease-in-out infinite}
+.wing-r{animation-delay:.08s}
+.moss-head{animation:nod 2.2s ease-in-out infinite}
+.juno-paw{animation:wave 1.3s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes flutter{0%,100%{transform:rotate(0deg) scaleY(1)}50%{transform:rotate(8deg) scaleY(.85)}}
+@keyframes nod{0%,100%{transform:rotate(0deg) translateY(0)}50%{transform:rotate(-11deg) translateY(1px)}}
+@keyframes wave{0%,100%{transform:rotate(0deg) translateY(0)}50%{transform:rotate(36deg) translateY(-5px)}}
 @media (prefers-reduced-motion: reduce){
   .confetti{display:none}
   .cele .card svg,.ripple-anim ellipse.rip{animation:none}
   .progress i{transition:none}
+  .bee-body,.wing,.moss-head,.juno-paw{animation:none}
 }
 .foot{margin-top:28px;text-align:center;color:var(--muted);font-size:.9rem}
 .mini-char{width:46px;flex:none;display:block}
