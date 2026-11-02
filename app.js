@@ -386,7 +386,7 @@ function suggestions(st,already,n,weak){
 }
 
 /* switches */
-let CAT="all";
+let CAT="all",SWSHOW=4;
 function swCard(s,opt={}){
   const c=CAST[s.pillar];const imp=fmtImpact(s.impact);
   const trying=S.tries.some(t=>t.id===s.id);const doing=S.already.includes(s.id);
@@ -403,16 +403,19 @@ function swCard(s,opt={}){
 function vSwitches(){
   const cats=document.getElementById("cats");
   cats.innerHTML=Object.entries(CATS).map(([k,v])=>`<button class="chip${k===CAT?" on":""}" data-c="${k}" role="tab" aria-selected="${k===CAT}">${v}</button>`).join("");
-  cats.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{CAT=b.dataset.c;vSwitches()});
+  cats.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{if(b.dataset.c!==CAT){CAT=b.dataset.c;SWSHOW=4}vSwitches()});
   const st=stage();
   const list=SWITCHES.filter(s=>CAT==="all"||s.cat===CAT);
   const fit=list.filter(s=>s.stage<=st),later=list.filter(s=>s.stage>st);
+  const paginate=CAT==="all",shownFit=paginate?fit.slice(0,SWSHOW):fit;
   let html="";
-  if(fit.length)html+=(S.quizDone?`<p class="small muted">Picked for a ${STAGES[st].name}</p>`:"")+fit.map(s=>swCard(s)).join("");
+  if(fit.length)html+=(S.quizDone?`<p class="small muted">Picked for a ${STAGES[st].name}</p>`:"")+shownFit.map(s=>swCard(s)).join("");
+  if(paginate&&SWSHOW<fit.length)html+=`<button class="btn ghost wide" id="sw-more">Load more</button>`;
   if(later.length)html+=`<div class="section-title"><h3>Bigger steps for later</h3></div><p class="small muted">Here whenever you’re curious. No rush.</p>`+later.map(s=>swCard(s)).join("");
   const box=document.getElementById("swlist");box.innerHTML=html;
   box.querySelectorAll("[data-try]").forEach(b=>b.onclick=()=>{const [id,d]=b.dataset.try.split("|");startTry(id,+d)});
   box.querySelectorAll("[data-log]").forEach(b=>b.onclick=()=>logIt(b.dataset.log));
+  const more=document.getElementById("sw-more");if(more)more.onclick=()=>{SWSHOW+=4;vSwitches()};
 }
 
 /* did you know: topic tracks */
