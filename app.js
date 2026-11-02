@@ -18,19 +18,18 @@ const CAST={planet:{name:"Moss",svg:moss,label:"Planet"},people:{name:"Juno",svg
 function treeSVG(L,opts={}){
   const vb=opts.mini?'90 40 140 110':'0 0 320 180';
   const trunk=(x,y,w,h)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${w/2}" fill="var(--bark)"/>`;
-  const cloud=(x,y,k)=>`<g fill="#fff" opacity=".9"><circle cx="${x}" cy="${y}" r="${9*k}"/><circle cx="${x+12*k}" cy="${y-5*k}" r="${12*k}"/><circle cx="${x+26*k}" cy="${y}" r="${9*k}"/><rect x="${x}" y="${y}" width="${26*k}" height="${9*k}" rx="${4*k}"/></g>`;
-  const fish=(x,y,k)=>`<g transform="translate(${x} ${y}) scale(${k})"><ellipse rx="7" ry="3.6" fill="#F08A4B"/><path d="M6 0 l6 -4 v8z" fill="#F08A4B"/><circle cx="-3.5" cy="-1" r=".9" fill="#163330"/></g>`;
+  const cloud=(x,y,k)=>`<g class="cloud" fill="#fff" opacity=".9"><circle cx="${x}" cy="${y}" r="${9*k}"/><circle cx="${x+12*k}" cy="${y-5*k}" r="${12*k}"/><circle cx="${x+26*k}" cy="${y}" r="${9*k}"/><rect x="${x}" y="${y}" width="${26*k}" height="${9*k}" rx="${4*k}"/></g>`;
+  const fish=(x,y,k)=>`<g class="fish" style="transform-origin:${x}px ${y}px;animation-delay:${(x%7)*.15}s"><g transform="translate(${x} ${y}) scale(${k})"><ellipse rx="7" ry="3.6" fill="#F08A4B"/><path d="M6 0 l6 -4 v8z" fill="#F08A4B"/><circle cx="-3.5" cy="-1" r=".9" fill="#163330"/></g></g>`;
   const fly=(x,y,c)=>`<g transform="translate(${x} ${y})"><ellipse cx="-3" rx="3.2" ry="4.6" fill="${c}" transform="rotate(-20)"/><ellipse cx="3" rx="3.2" ry="4.6" fill="${c}" transform="rotate(20)"/><rect x="-.6" y="-4" width="1.2" height="8" rx=".6" fill="#163330"/></g>`;
-  const bird=(x,y,c)=>`<g transform="translate(${x} ${y})"><path d="M-6 1 l-6 2 6 1z" fill="${c}"/><ellipse rx="7" ry="5" fill="${c}"/><circle cx="5" cy="-4" r="3.6" fill="${c}"/><path d="M8.4 -4.4 l4 1 -4 1z" fill="#EFAE34"/><circle cx="6" cy="-4.8" r="1" fill="#fff"/></g>`;
+  const bird=(x,y,c)=>`<g class="bird" style="transform-origin:${x}px ${y}px;animation-delay:${(x%7)*.15}s"><g transform="translate(${x} ${y})"><path d="M-6 1 l-6 2 6 1z" fill="${c}"/><ellipse rx="7" ry="5" fill="${c}"/><circle cx="5" cy="-4" r="3.6" fill="${c}"/><path d="M8.4 -4.4 l4 1 -4 1z" fill="#EFAE34"/><circle cx="6" cy="-4.8" r="1" fill="#fff"/></g></g>`;
   let g="";
-  if(L>=7) g+=[["#E8705E",150],["#EFAE34",141],["#5CB979",132],["#4FA3D9",123]].map(([c,r])=>`<path d="M${160-r} 150 A ${r} ${r*0.82} 0 0 1 ${160+r} 150" fill="none" stroke="${c}" stroke-width="7" opacity=".28"/>`).join("");
   if(L===0) g+=`<g opacity=".55" fill="#9AA6A2"><circle cx="58" cy="36" r="11"/><circle cx="73" cy="30" r="15"/><circle cx="90" cy="36" r="11"/><rect x="50" y="36" width="48" height="10" rx="5"/></g>`;
   if(L>=1){g+=`<g opacity="${L===1?.45:1}"><circle cx="282" cy="32" r="15" fill="var(--sun)"/>`;if(L>=2)g+=`<g stroke="var(--sun)" stroke-width="3" stroke-linecap="round">`+[0,45,90,135,180,225,270,315].map(d=>{const r=d*Math.PI/180;return `<line x1="${(282+21*Math.cos(r)).toFixed(1)}" y1="${(32+21*Math.sin(r)).toFixed(1)}" x2="${(282+27*Math.cos(r)).toFixed(1)}" y2="${(32+27*Math.sin(r)).toFixed(1)}"/>`}).join("")+`</g>`;g+=`</g>`}
   if(L>=4) g+=cloud(34,32,1);
   if(L>=6) g+=cloud(196,24,.75)+`<g fill="none" stroke="#163330" stroke-width="2" stroke-linecap="round" opacity=".55"><path d="M112 30 q5 -5 10 0 q5 -5 10 0"/><path d="M140 16 q4 -4 8 0 q4 -4 8 0"/></g>`;
   g+=`<ellipse cx="160" cy="152" rx="152" ry="26" fill="${L>=2?"var(--pond)":"var(--murky)"}"/>
-  <ellipse class="rip" cx="160" cy="150" rx="128" ry="20" fill="none" stroke="${L>=2?"var(--pond2)":"var(--murky2)"}" stroke-width="2"/>
-  <ellipse class="rip" cx="160" cy="148" rx="100" ry="15" fill="none" stroke="${L>=2?"var(--pond2)":"var(--murky2)"}" stroke-width="2"/>`;
+  <ellipse class="rip rip-1" cx="160" cy="150" rx="128" ry="20" fill="none" stroke="${L>=2?"var(--pond2)":"var(--murky2)"}" stroke-width="2"/>
+  <ellipse class="rip rip-2" cx="160" cy="148" rx="100" ry="15" fill="none" stroke="${L>=2?"var(--pond2)":"var(--murky2)"}" stroke-width="2"/>`;
   if(L===0) g+=`<g opacity=".75" fill="#AEB8B4"><rect x="66" y="152" width="15" height="6" rx="3" transform="rotate(-12 73 155)"/><rect x="240" y="157" width="8" height="5" rx="1.5"/></g>`;
   if(L>=3) g+=fish(92,161,1);
   if(L>=6) g+=fish(232,163,.9)+fish(256,151,.7);
@@ -42,10 +41,10 @@ function treeSVG(L,opts={}){
   if(L>=5) g+=trunk(104,110,6,28)+`<circle cx="107" cy="104" r="15" fill="var(--leaf2)"/><circle cx="102" cy="100" r="3" fill="#E8503A"/>`+trunk(214,112,6,26)+`<circle cx="217" cy="106" r="13" fill="var(--leaf2)"/><circle cx="222" cy="103" r="3" fill="#F2A33A"/>`;
   if(L>=3) g+=trunk(153,78,14,60)+`<circle cx="160" cy="66" r="34" fill="var(--leaf)"/><circle cx="136" cy="78" r="20" fill="var(--leaf)"/><circle cx="184" cy="78" r="20" fill="var(--leaf)"/><circle cx="146" cy="56" r="16" fill="var(--leaf2)"/><circle cx="178" cy="60" r="11" fill="var(--leaf2)"/>`;
   const FR=[[170,76],[142,84],[160,50],[180,64],[136,66],[152,74],[190,82],[128,82],[167,38],[146,44],[196,70],[174,92]];
-  const nf=[0,0,0,3,7,10,12,12][Math.min(L,7)];
+  const nf=[0,0,0,3,5,7,8,8][Math.min(L,7)];
   g+=FR.slice(0,nf).map(([x,y],i)=>`<circle cx="${x}" cy="${y}" r="4.2" fill="${i%2?"#F2A33A":"#E8503A"}"/><path d="M${x} ${y-4} l1.5 -2.5" stroke="var(--bark)" stroke-width="1.2"/>`).join("");
   const FL=[[126,140],[196,141],[182,137],[140,144],[112,142],[208,139],[90,139],[232,142]];
-  const nfl=[0,0,2,3,4,6,8,8][Math.min(L,7)],FC=["var(--sun)","var(--coral)","#F4A6C6","#B48CE0"];
+  const nfl=[0,0,2,3,4,5,6,6][Math.min(L,7)],FC=["var(--sun)","var(--coral)","#F4A6C6","#B48CE0"];
   g+=FL.slice(0,nfl).map(([x,y],i)=>`<circle cx="${x}" cy="${y}" r="3.2" fill="${FC[i%4]}"/><circle cx="${x}" cy="${y}" r="1.2" fill="#fff"/>`).join("");
   if(L>=4) g+=bird(200,42,"#4F7BD9")+fly(100,116,"#B48CE0");
   if(L>=6) g+=fly(232,96,"#F4A6C6");
@@ -53,7 +52,7 @@ function treeSVG(L,opts={}){
   if(L>=5) g+=`<g transform="translate(46 84) scale(.22)">${penny().replace(/<\/?svg[^>]*>/g,"")}</g>`;
   return `<svg viewBox="${vb}" aria-hidden="true">${g}</svg>`;
 }
-const LEVELS=[0,15,40,80,140,220,320,450];
+const LEVELS=[0,20,60,150,300,550,900,1400];
 const LEVEL_NAMES=["A seed","A sprout","A sapling","A young tree","A fruiting tree","A little grove","A thriving garden","A flourishing island"];
 function treeLevel(seeds){let l=0;LEVELS.forEach((t,i)=>{if(seeds>=t)l=i});return l}
 
@@ -187,6 +186,10 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&document.getElement
 /* ---------- actions ---------- */
 function logIt(id){
   const t=today();
+  if(S.logs.some(l=>l.id===id&&l.d===t)){
+    celebrate(SW[id].pillar,"Already counted for today. Nice and consistent!",0);
+    return;
+  }
   S.logs.push({id,d:t});S.seeds+=5;save();
   celebrate(SW[id].pillar,null,5);
 }
@@ -527,10 +530,10 @@ function vFacts(){
     <div class="panel reveal"><p class="small muted" style="margin:0">${f.q}</p><div class="ans" style="margin-top:10px;${f.opts?"font-size:1.5rem":""}">${ansText}</div>
     <div class="stars" aria-label="${F.stars} of 3 stars">${"★".repeat(F.stars)}${"☆".repeat(3-F.stars)}</div>
     <p class="small muted">${yours}</p></div>
-    <div class="panel"><p>${f.why}</p>
+    <details class="panel why-more"><summary>Tell me more</summary><p>${f.why}</p>
       ${f.tip?`<div class="try-this"><b>What you can do:</b> ${f.tip}</div>`:""}
       ${f.int?`<div class="try-this"><b>Interview angle:</b> ${f.int}</div>`:""}
-      <p class="src">Source: ${f.src}${f.int?`. Last checked ${CHECKED}.`:""}</p></div>
+      <p class="src">Source: ${f.src}${f.int?`. Last checked ${CHECKED}.`:""}</p></details>
     <button class="btn wide" id="nextf">${more?"Next fact":"Done for now"}</button>`;
   document.getElementById("nextf").onclick=()=>{F={i:null};render();window.scrollTo(0,0)};
   bindChips();
@@ -632,14 +635,13 @@ function vGarden(){
       <div><b>${S.already.length}</b><span class="small muted">habits you keep</span></div>
     </div>
     ${S.already.length?`<div class="panel"><h3>Habits you keep</h3><div class="already">${S.already.map(id=>`<span class="pill ${SW[id].pillar}">${SW[id].title}</span>`).join("")}</div></div>`:""}
-    <div class="panel"><h3>Your stage</h3><p class="small muted">This only changes which ideas we show first. Change it whenever you like.</p>
-      <div class="stages">${STAGES.map((s,i)=>`<button class="stage${S.stage===i?" on":""}" data-s="${i}" aria-pressed="${S.stage===i}">${treeSVG([0,1,2,5][i],{mini:true})}${s.name}</button>`).join("")}</div>
+    <div class="panel"><h3>Your stage</h3><p class="small muted">Set from your quiz answers. Retake the quiz if it doesn’t feel right anymore.</p>
+      <div class="stages">${STAGES.map((s,i)=>`<div class="stage${S.stage===i?" on":""}" aria-current="${S.stage===i}">${treeSVG([0,1,2,5][i],{mini:true})}${s.name}</div>`).join("")}</div>
       ${S.stage!=null?`<p class="small">${STAGES[stage()].line}</p>`:""}
       <div class="actions"><a class="btn ghost sm" href="#quiz" id="redo">${S.quizDone?"Retake the quiz":"Take the quiz"}</a></div>
     </div>
     <div class="panel">${isSignedIn()?`<h3>Account</h3><p class="small">Saved to <b>${esc(AUTH.user.email)}</b>. It’ll follow you to any device you sign into.</p><div class="actions"><button class="btn ghost sm" id="acct-signout">Sign out</button><button class="link small" id="acct-delete">Delete my account</button></div>`:`<h3>Keep this safe</h3><p class="small muted">Sign in and your garden follows you to any device. Totally optional, nothing changes if you skip it.</p><button class="btn sm" id="acct-signin">Sign in</button>`}</div>
     <p class="foot"><button class="link" id="reset">Start over</button><br>${isSignedIn()?"Saved to your account, and on this device.":"Everything is saved on this device only."}<br><a href="privacy.html">Privacy</a></p>`;
-  el.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>setStage(+b.dataset.s));
   document.getElementById("redo").onclick=()=>{Q={i:0,ans:[]};RES=null};
   document.getElementById("reset").onclick=()=>{if(confirm("Start over? This clears your garden, tries and choices on this device.")){S=defaults();save();location.hash="today";render()}};
   const asi=document.getElementById("acct-signin");if(asi)asi.onclick=openSignIn;

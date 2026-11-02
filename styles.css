@@ -57,8 +57,17 @@ button{font:inherit;color:inherit;cursor:pointer}
 .scene svg{display:block;width:100%;height:auto}
 .scene .stat{position:absolute;left:18px;top:14px}
 .scene .stat b{font-family:"Baloo 2",system-ui,sans-serif;font-size:2rem;line-height:1}
-.ripple-anim ellipse.rip{animation:rip 1.6s ease-out 1}
+.ripple-anim ellipse.rip{animation:rip 1.6s ease-out 1, shimmer 4s ease-in-out 1.6s infinite}
+.ripple-anim ellipse.rip-2{animation-delay:0s,2.8s}
 @keyframes rip{from{opacity:.9;transform:scale(.6)}to{opacity:0;transform:scale(1.25)}}
+@keyframes shimmer{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
+.cloud{animation:drift 9s ease-in-out infinite}
+.fish{animation:swim 2.6s ease-in-out infinite}
+.bird{animation:glide 2.4s ease-in-out infinite}
+@keyframes swim{0%,100%{transform:rotate(0deg)}50%{transform:rotate(7deg)}}
+@keyframes glide{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+.cloud:nth-of-type(2){animation-duration:11s;animation-delay:-3s}
+@keyframes drift{0%,100%{transform:translateX(0)}50%{transform:translateX(8px)}}
 .rip{transform-origin:160px 150px}
 
 /* cast */
@@ -173,7 +182,7 @@ nav.tabs a.on{color:var(--teal)}
   .confetti{display:none}
   .cele .card svg,.ripple-anim ellipse.rip{animation:none}
   .progress i{transition:none}
-  .bee-body,.wing,.moss-head,.juno-paw{animation:none}
+  .bee-body,.wing,.moss-head,.juno-paw,.cloud,.fish,.bird{animation:none}
 }
 .foot{margin-top:28px;text-align:center;color:var(--muted);font-size:.9rem}
 .mini-char{width:46px;flex:none;display:block}
