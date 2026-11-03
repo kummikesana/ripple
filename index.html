@@ -22,7 +22,19 @@
 </head>
 <body>
 <div class="app">
-  <header class="topbar"><button class="back" id="back">‹ Back</button><a class="home" href="#today">🌱 Ripple</a><button class="theme-toggle" id="theme-toggle" aria-label="Switch to dark mode">🌙</button><button class="acct-badge" id="acct-badge" aria-label="Sign in"></button></header>
+  <header class="topbar">
+    <button class="back" id="back">‹ Back</button>
+    <a class="home" href="#today">🌱 Ripple</a>
+    <div class="vol-wrap">
+      <button class="icon-btn" id="sound-btn" aria-label="Sound volume" aria-haspopup="true"></button>
+      <div class="vol-pop" id="vol-pop">
+        <div class="vol-label"><span>Sound</span><span id="vol-pct">40%</span></div>
+        <input type="range" min="0" max="100" value="40" id="vol-range" aria-label="Sound volume level">
+      </div>
+    </div>
+    <button class="icon-btn theme-toggle" id="theme-toggle" aria-label="Switch to dark mode">🌙</button>
+    <button class="icon-btn acct-badge" id="acct-badge" aria-label="Sign in"></button>
+  </header>
 
   <!-- TODAY -->
   <section id="v-today" class="view"></section>

@@ -86,10 +86,15 @@ button{font:inherit;color:inherit;cursor:pointer}
 .topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:15;background:var(--bg);display:flex;align-items:center;gap:10px;padding:10px 0;margin:-18px 0 10px}
 .topbar .home{font-family:"Baloo 2",system-ui,sans-serif;font-weight:800;font-size:1.45rem;color:var(--teal);text-decoration:none}
 .topbar .back{border:2px solid var(--line);background:var(--surface);border-radius:12px;padding:5px 12px;font-weight:700}
-.theme-toggle{margin-left:auto;flex:none;width:36px;height:36px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:1rem}
-.acct-badge{flex:none;width:36px;height:36px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.95rem}
+.icon-btn{flex:none;width:36px;height:36px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:1rem}
+.acct-badge{font-weight:800;font-size:.95rem}
 .acct-badge.on{background:var(--teal);color:var(--teal-ink);border-color:var(--teal)}
 .acct-badge svg{width:18px;height:18px}
+.vol-wrap{position:relative;margin-left:auto;display:flex}
+.vol-pop{position:absolute;top:44px;right:0;background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:12px 14px;display:none;flex-direction:column;gap:6px;box-shadow:0 8px 20px rgba(0,0,0,.18);z-index:30;width:170px}
+.vol-pop.on{display:flex}
+.vol-pop .vol-label{font-size:.78rem;color:var(--muted);display:flex;justify-content:space-between}
+.vol-pop input[type=range]{width:100%;accent-color:var(--teal)}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
 
 /* recap */

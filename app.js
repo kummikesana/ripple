@@ -12,6 +12,76 @@ document.getElementById("theme-toggle").onclick=()=>{
   applyTheme(t);
 };
 
+/* ---------- sound ----------
+   Tiny synthesized chimes (Web Audio), no audio files to ship or license.
+   On by default at a gentle level, adjustable from the speaker icon. */
+let audioCtx=null;
+function getVolume(){
+  const raw=localStorage.getItem("ripple-volume");
+  const v=raw===null?40:parseInt(raw,10);
+  return isNaN(v)?40:Math.max(0,Math.min(100,v));
+}
+function ensureAudio(){
+  if(!audioCtx){
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC)return null;
+    try{audioCtx=new AC()}catch(e){return null}
+  }
+  if(audioCtx.state==="suspended")audioCtx.resume();
+  return audioCtx;
+}
+function tone(freq,start,dur,peak){
+  const ctx=ensureAudio();if(!ctx)return;
+  const osc=ctx.createOscillator(),gain=ctx.createGain();
+  osc.type="sine";osc.frequency.value=freq;
+  const t0=ctx.currentTime+start;
+  gain.gain.setValueAtTime(0.0001,t0);
+  gain.gain.linearRampToValueAtTime(peak,t0+0.02);
+  gain.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+  osc.connect(gain);gain.connect(ctx.destination);
+  osc.start(t0);osc.stop(t0+dur+0.03);
+}
+function playChime(notes){
+  const vol=getVolume();if(vol<=0)return;
+  const peak=0.04+(vol/100)*0.16;
+  notes.forEach(([freq,start,dur])=>tone(freq,start,dur,peak));
+}
+function sfxTick(){playChime([[523.25,0,.12]])}
+function sfxSmall(){playChime([[523.25,0,.14],[659.25,.09,.16]])}
+function sfxMedium(){playChime([[523.25,0,.12],[659.25,.09,.12],[783.99,.18,.22]])}
+function sfxBig(){playChime([[523.25,0,.1],[659.25,.08,.1],[783.99,.16,.1],[1046.5,.24,.32]])}
+function sfxBySeeds(seeds){(seeds<=0?sfxTick:seeds<=5?sfxSmall:seeds<=10?sfxMedium:sfxBig)()}
+function sfxByStars(stars){(stars>=3?sfxMedium:stars===2?sfxSmall:sfxTick)()}
+
+function updateVolumeUI(){
+  const v=getVolume();
+  const btn=document.getElementById("sound-btn");
+  if(btn){
+    btn.textContent=v===0?"🔇":v<34?"🔈":v<67?"🔉":"🔊";
+    btn.setAttribute("aria-label",`Sound volume, ${v}%`);
+  }
+  const r=document.getElementById("vol-range");if(r)r.value=v;
+  const p=document.getElementById("vol-pct");if(p)p.textContent=v+"%";
+}
+updateVolumeUI();
+const soundBtn=document.getElementById("sound-btn"),volPop=document.getElementById("vol-pop"),volRange=document.getElementById("vol-range");
+soundBtn.onclick=(e)=>{
+  e.stopPropagation();
+  const opening=!volPop.classList.contains("on");
+  volPop.classList.toggle("on");
+  if(opening)sfxSmall();
+};
+document.addEventListener("click",(e)=>{
+  if(volPop.classList.contains("on")&&!volPop.contains(e.target)&&e.target!==soundBtn)volPop.classList.remove("on");
+});
+let volPreview=null;
+volRange.addEventListener("input",()=>{
+  localStorage.setItem("ripple-volume",volRange.value);
+  updateVolumeUI();
+  clearTimeout(volPreview);
+  volPreview=setTimeout(sfxSmall,120);
+});
+
 /* ---------- optional cloud sign-in ----------
    Sign-in is entirely optional. Guests use Ripple fully from localStorage,
    exactly as before. Signing in just lets a garden follow someone across
@@ -191,6 +261,7 @@ function celebrate(pillar,msg,seeds){
   for(let i=0;i<34;i++){const p=document.createElement("i");p.style.left=Math.random()*100+"vw";p.style.background=cols[i%4];p.style.animationDelay=(Math.random()*.5)+"s";p.style.transform=`rotate(${Math.random()*180}deg)`;conf.appendChild(p)}
   const el=document.getElementById("cele");el.classList.add("on");
   document.getElementById("cele-close").focus();
+  sfxBySeeds(seeds);
 }
 function closeCele(){document.getElementById("cele").classList.remove("on");render();maybeShowInstallToast()}
 document.getElementById("cele-close").onclick=closeCele;
@@ -513,7 +584,7 @@ function vFacts(){
     bindChips();return;
   }
   const f=T.facts[F.i],c=CAST[f.who||T.who];
-  const record=()=>{if(!st.done.includes(F.i))st.done.push(F.i);st.stars+=F.stars;S.seeds+=F.stars;if(st.done.length>=unlocked(CUR))st.last=today();save();render();window.scrollTo(0,0)};
+  const record=()=>{if(!st.done.includes(F.i))st.done.push(F.i);st.stars+=F.stars;S.seeds+=F.stars;if(st.done.length>=unlocked(CUR))st.last=today();save();sfxByStars(F.stars);render();window.scrollTo(0,0)};
   if(!F.rev){
     if(f.opts){
       el.innerHTML=head+`<div class="qhead">${c.svg()}<div class="speech"><h2 style="font-size:1.18rem">${f.q}</h2></div></div>
