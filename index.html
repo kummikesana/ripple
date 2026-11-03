@@ -8,6 +8,7 @@
 <meta property="og:title" content="Ripple">
 <meta property="og:description" content="Small choices, real ripples. Try a sustainable switch, no pressure.">
 <meta name="theme-color" content="#5B7452">
+<script>try{if(localStorage.getItem("ripple-theme")==="dark")document.documentElement.setAttribute("data-theme","dark")}catch(e){}</script>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -21,7 +22,7 @@
 </head>
 <body>
 <div class="app">
-  <header class="topbar"><button class="back" id="back">‹ Back</button><a class="home" href="#today">🌱 Ripple</a><button class="acct-badge" id="acct-badge" aria-label="Sign in"></button></header>
+  <header class="topbar"><button class="back" id="back">‹ Back</button><a class="home" href="#today">🌱 Ripple</a><button class="theme-toggle" id="theme-toggle" aria-label="Switch to dark mode">🌙</button><button class="acct-badge" id="acct-badge" aria-label="Sign in"></button></header>
 
   <!-- TODAY -->
   <section id="v-today" class="view"></section>
@@ -73,6 +74,15 @@
   <div class="card">
     <button class="link close" id="signin-close" aria-label="Close">✕</button>
     <div id="signin-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="install-toast" role="dialog" aria-live="polite" aria-labelledby="toast-h">
+  <div class="t-ico" id="toast-ico"></div>
+  <div class="t-body"><strong id="toast-h">Keep Ripple handy</strong><p class="small muted" id="toast-msg"></p></div>
+  <div class="t-actions">
+    <button class="btn sun sm" id="toast-install" style="display:none">Install</button>
+    <button class="link" id="toast-dismiss" aria-label="Dismiss">✕</button>
   </div>
 </div>
 

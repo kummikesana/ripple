@@ -1,3 +1,17 @@
+/* ---------- theme ---------- */
+function getTheme(){return localStorage.getItem("ripple-theme")==="dark"?"dark":"light"}
+function applyTheme(t){
+  document.documentElement.setAttribute("data-theme",t);
+  const b=document.getElementById("theme-toggle");
+  if(b){b.textContent=t==="dark"?"☀️":"🌙";b.setAttribute("aria-label",t==="dark"?"Switch to light mode":"Switch to dark mode")}
+}
+applyTheme(getTheme());
+document.getElementById("theme-toggle").onclick=()=>{
+  const t=getTheme()==="dark"?"light":"dark";
+  localStorage.setItem("ripple-theme",t);
+  applyTheme(t);
+};
+
 /* ---------- optional cloud sign-in ----------
    Sign-in is entirely optional. Guests use Ripple fully from localStorage,
    exactly as before. Signing in just lets a garden follow someone across
@@ -178,7 +192,7 @@ function celebrate(pillar,msg,seeds){
   const el=document.getElementById("cele");el.classList.add("on");
   document.getElementById("cele-close").focus();
 }
-function closeCele(){document.getElementById("cele").classList.remove("on");render()}
+function closeCele(){document.getElementById("cele").classList.remove("on");render();maybeShowInstallToast()}
 document.getElementById("cele-close").onclick=closeCele;
 document.getElementById("cele").addEventListener("click",e=>{if(e.target.id==="cele")closeCele()});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&document.getElementById("cele").classList.contains("on"))closeCele()});
@@ -257,17 +271,6 @@ function vToday(){
       <div class="actions"><button class="btn sun sm" id="signin-yes">Sign in</button><button class="btn ghost sm" id="signin-no">Maybe later</button></div></div>`;
   }
 
-  // install prompt
-  if(!isStandalone()&&(deferredInstallPrompt||isIOS())&&(S.quizDone||S.logs.length>0)&&(!S.installSnooze||dayDiff(S.installSnooze,t)>=7)){
-    if(deferredInstallPrompt){
-      html+=`<div class="panel invite"><div class="row"><div style="width:60px;flex:none">${moss()}</div><div><h3>Keep Ripple handy</h3><p class="small">Install it like an app, right on your home screen. No app store needed.</p></div></div>
-        <div class="actions"><button class="btn sun sm" id="install-yes">Install</button><button class="btn ghost sm" id="install-no">Maybe later</button></div></div>`;
-    }else{
-      html+=`<div class="panel invite"><div class="row"><div style="width:60px;flex:none">${moss()}</div><div><h3>Keep Ripple handy</h3><p class="small">Add it to your home screen: tap the Share icon, then “Add to Home Screen”.</p></div></div>
-        <div class="actions"><button class="btn ghost sm" id="install-no">Got it</button></div></div>`;
-    }
-  }
-
   // tries
   html+=`<div class="section-title"><h2>What you’re trying</h2></div>`;
   if(!S.tries.length){
@@ -333,15 +336,6 @@ function vToday(){
   const sy=document.getElementById("signin-yes"),sn=document.getElementById("signin-no");
   if(sy)sy.onclick=openSignIn;
   if(sn)sn.onclick=()=>{S.signinSnooze=today();save();render()};
-  const iy=document.getElementById("install-yes"),ino=document.getElementById("install-no");
-  if(iy)iy.onclick=async()=>{
-    if(!deferredInstallPrompt)return;
-    deferredInstallPrompt.prompt();
-    await deferredInstallPrompt.userChoice;
-    deferredInstallPrompt=null;
-    render();
-  };
-  if(ino)ino.onclick=()=>{S.installSnooze=today();save();render()};
 }
 
 /* quiz */
@@ -715,7 +709,7 @@ function renderSignInBody(){
   };
 }
 function openSignIn(){renderSignInBody();document.getElementById("signin").classList.add("on")}
-function closeSignIn(){document.getElementById("signin").classList.remove("on")}
+function closeSignIn(){document.getElementById("signin").classList.remove("on");maybeShowInstallToast()}
 document.getElementById("signin-close").onclick=closeSignIn;
 document.getElementById("signin").addEventListener("click",e=>{if(e.target.id==="signin")closeSignIn()});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&document.getElementById("signin").classList.contains("on"))closeSignIn()});
@@ -813,10 +807,36 @@ if(sb){
 
 /* ---------- install prompt ---------- */
 let deferredInstallPrompt=null;
+let installToastTimerDone=false;
 function isStandalone(){return window.matchMedia("(display-mode: standalone)").matches||window.navigator.standalone===true}
 function isIOS(){const ua=navigator.userAgent;if(/Android/.test(ua))return false;return /iPad|iPhone|iPod/.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1)}
-window.addEventListener("beforeinstallprompt",(e)=>{e.preventDefault();deferredInstallPrompt=e;render()});
-window.addEventListener("appinstalled",()=>{deferredInstallPrompt=null;render()});
+function installToastEligible(){
+  return !isStandalone()&&(deferredInstallPrompt||isIOS())&&(!S.installSnooze||dayDiff(S.installSnooze,today())>=7);
+}
+function maybeShowInstallToast(){
+  if(!installToastTimerDone||!installToastEligible())return;
+  const toast=document.getElementById("install-toast");
+  if(toast.classList.contains("on"))return;
+  if(document.getElementById("signin").classList.contains("on")||document.getElementById("cele").classList.contains("on"))return;
+  document.getElementById("toast-ico").innerHTML=moss();
+  document.getElementById("toast-msg").textContent=deferredInstallPrompt
+    ?"Install it like an app, right on your home screen. No app store needed."
+    :"Add it to your home screen: tap the Share icon, then “Add to Home Screen”.";
+  document.getElementById("toast-install").style.display=deferredInstallPrompt?"":"none";
+  toast.classList.add("on");
+}
+function closeInstallToast(){document.getElementById("install-toast").classList.remove("on")}
+document.getElementById("toast-install").onclick=async()=>{
+  if(!deferredInstallPrompt)return;
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt=null;
+  closeInstallToast();
+};
+document.getElementById("toast-dismiss").onclick=()=>{S.installSnooze=today();save();closeInstallToast()};
+window.addEventListener("beforeinstallprompt",(e)=>{e.preventDefault();deferredInstallPrompt=e;maybeShowInstallToast()});
+window.addEventListener("appinstalled",()=>{deferredInstallPrompt=null;closeInstallToast()});
+setTimeout(()=>{installToastTimerDone=true;maybeShowInstallToast()},20000);
 
 render();
 

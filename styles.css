@@ -9,16 +9,6 @@
   padding-top:env(safe-area-inset-top,0px);
   padding-bottom:env(safe-area-inset-bottom,0px);
 }
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg:#231E17; --surface:#312A20; --surface2:#3C3426; --ink:#F3EBDB; --muted:#C4B296; --line:#4C4231;
-    --teal:#8FAE78; --teal-ink:#1C2415; --sun:#E0A85C; --coral:#D98C6E; --bark:#C08A63;
-    --pond:#1B4A45; --pond2:#24605A; --murky:#332C22; --murky2:#443B2C; --grass:#3E7D56; --leaf:#4DAE6E; --leaf2:#6CC88A; --shadow:0 2px 0 rgba(0,0,0,.35);
-    --seed-bg:#473627; --sprout-bg:#354330; --sapling-bg:#3C5C3E; --grove-bg:#3E6945; --grove-ink:#F3EBDB;
-    --tile1:#372F23; --tile2:#395237; --tile3:#594533;
-    color-scheme: dark;
-  }
-}
 :root[data-theme="dark"]{
   --bg:#231E17; --surface:#312A20; --surface2:#3C3426; --ink:#F3EBDB; --muted:#C4B296; --line:#4C4231;
   --teal:#8FAE78; --teal-ink:#1C2415; --sun:#E0A85C; --coral:#D98C6E; --bark:#C08A63;
@@ -96,7 +86,8 @@ button{font:inherit;color:inherit;cursor:pointer}
 .topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:15;background:var(--bg);display:flex;align-items:center;gap:10px;padding:10px 0;margin:-18px 0 10px}
 .topbar .home{font-family:"Baloo 2",system-ui,sans-serif;font-weight:800;font-size:1.45rem;color:var(--teal);text-decoration:none}
 .topbar .back{border:2px solid var(--line);background:var(--surface);border-radius:12px;padding:5px 12px;font-weight:700}
-.acct-badge{margin-left:auto;flex:none;width:36px;height:36px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.95rem}
+.theme-toggle{margin-left:auto;flex:none;width:36px;height:36px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:1rem}
+.acct-badge{flex:none;width:36px;height:36px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.95rem}
 .acct-badge.on{background:var(--teal);color:var(--teal-ink);border-color:var(--teal)}
 .acct-badge svg{width:18px;height:18px}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
@@ -157,6 +148,19 @@ nav.tabs a.on{color:var(--teal)}
 .sheet .card{position:relative;background:var(--surface);border:2px solid var(--line);border-bottom:0;border-radius:24px 24px 0 0;padding:26px 20px 28px;max-width:420px;width:100%;max-height:85vh;overflow:auto}
 .sheet .close{position:absolute;top:14px;right:16px;font-size:1.2rem;line-height:1}
 .field{width:100%;border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:14px;padding:12px 14px;font:inherit;margin-bottom:10px}
+
+/* install toast */
+.toast{position:fixed;left:14px;right:14px;max-width:420px;margin:0 auto;bottom:calc(78px + env(safe-area-inset-bottom,0px));background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:12px 8px 12px 12px;display:none;align-items:center;gap:10px;box-shadow:0 10px 28px rgba(0,0,0,.18);z-index:40;transform:translateY(14px);opacity:0;transition:transform .25s ease,opacity .25s ease}
+.toast.on{display:flex;transform:translateY(0);opacity:1}
+.toast .t-ico{width:38px;flex:none}
+.toast .t-ico svg{display:block;width:100%;height:auto}
+.toast .t-body{flex:1;min-width:0}
+.toast .t-body strong{display:block;font-family:"Baloo 2",system-ui,sans-serif;font-size:.95rem;color:var(--ink)}
+.toast .t-body p{margin:2px 0 0}
+.toast .t-actions{display:flex;flex-direction:column;align-items:flex-end;gap:0;flex:none}
+.toast .t-actions .btn{white-space:nowrap}
+.toast .t-actions .link{padding:4px 2px}
+@media (prefers-reduced-motion: reduce){.toast{transition:none}}
 
 /* celebration */
 .cele{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:color-mix(in srgb,var(--bg) 70%,transparent);backdrop-filter:blur(3px);padding:20px}
