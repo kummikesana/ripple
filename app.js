@@ -421,7 +421,7 @@ function vQuiz(){
     ${Q.i===0?`<p class="small muted" style="margin-top:-8px">No right or wrong answers. This just helps us suggest ideas that fit your life.</p>`:""}
     <div class="qhead">${c.svg()}<div class="speech"><h2 style="font-size:1.3rem">${q.q}</h2>${q.sub?`<p class="small muted">${q.sub}</p>`:""}</div></div>
     <div class="opts">${q.o.map((o,k)=>`<button class="opt" data-k="${k}">${o[0]}</button>`).join("")}</div>`;
-  el.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{Q.ans[Q.i]=+b.dataset.k;Q.i++;render();window.scrollTo(0,0)});
+  el.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{Q.ans[Q.i]=+b.dataset.k;Q.i++;render();scrollTopReset()});
   document.getElementById("q-back").onclick=()=>{if(Q.i===0){location.hash="today"}else{Q.i--;render()}};
 }
 function quizOutcome(){
@@ -576,7 +576,11 @@ function vFacts(){
   const chips=Object.entries(TRACKS).map(([k,t])=>`<button class="chip${k===CUR?" on":""}" data-t="${k}">${t.name}</button>`).join("");
   const head=`<h1>Did you know?</h1><p class="muted">Pick a topic, guess first, then see the real answer.</p><div class="chips">${chips}</div>
     <div class="progress" style="margin-bottom:6px"><i style="width:${st.done.length/pool*100}%"></i></div><p class="small muted" style="margin:0 0 14px">${st.done.length} of ${pool} played in this topic, ${st.stars} ★ earned</p>`;
-  const bindChips=()=>el.querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>{S.curTrack=b.dataset.t;save();F={i:null};render()});
+  const bindChips=()=>{
+    el.querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>{S.curTrack=b.dataset.t;save();F={i:null};render()});
+    const activeChip=el.querySelector(".chip.on");
+    if(activeChip)activeChip.scrollIntoView({inline:"center",block:"nearest"});
+  };
   if(F.i==null||F.t!==CUR){const left=[...Array(n).keys()].filter(k=>!st.done.includes(k));F={t:CUR,i:left.length?left[Math.floor(Math.random()*left.length)]:-1,pos:500,rev:false}}
   if(F.i===-1){
     const more=n<pool;
@@ -584,7 +588,7 @@ function vFacts(){
     bindChips();return;
   }
   const f=T.facts[F.i],c=CAST[f.who||T.who];
-  const record=()=>{if(!st.done.includes(F.i))st.done.push(F.i);st.stars+=F.stars;S.seeds+=F.stars;if(st.done.length>=unlocked(CUR))st.last=today();save();sfxByStars(F.stars);render();window.scrollTo(0,0)};
+  const record=()=>{if(!st.done.includes(F.i))st.done.push(F.i);st.stars+=F.stars;S.seeds+=F.stars;if(st.done.length>=unlocked(CUR))st.last=today();save();sfxByStars(F.stars);render();scrollTopReset()};
   if(!F.rev){
     if(f.opts){
       el.innerHTML=head+`<div class="qhead">${c.svg()}<div class="speech"><h2 style="font-size:1.18rem">${f.q}</h2></div></div>
@@ -620,7 +624,7 @@ function vFacts(){
       ${f.int?`<div class="try-this"><b>Interview angle:</b> ${f.int}</div>`:""}
       <p class="src">Source: ${f.src}${f.int?`. Last checked ${CHECKED}.`:""}</p></details>
     <button class="btn wide" id="nextf">${more?"Next fact":"Done for now"}</button>`;
-  document.getElementById("nextf").onclick=()=>{F={i:null};render();window.scrollTo(0,0)};
+  document.getElementById("nextf").onclick=()=>{F={i:null};render();scrollTopReset()};
   bindChips();
 }
 
@@ -735,6 +739,7 @@ function vGarden(){
 }
 
 /* ---------- router ---------- */
+function scrollTopReset(){const a=document.querySelector(".app");if(a)a.scrollTop=0}
 const ROUTES=["today","quiz","switches","facts","ask","garden"];
 function render(){
   let r=location.hash.slice(1);if(!ROUTES.includes(r))r="today";
@@ -761,7 +766,7 @@ function renderAcctBadge(){
   }
 }
 document.getElementById("back").onclick=()=>{location.hash="today"};
-window.addEventListener("hashchange",()=>{if(location.hash==="#quiz"&&Q.i>=QUIZ.length&&!RES){Q={i:0,ans:[]}}render();window.scrollTo(0,0)});
+window.addEventListener("hashchange",()=>{if(location.hash==="#quiz"&&Q.i>=QUIZ.length&&!RES){Q={i:0,ans:[]}}render();scrollTopReset()});
 
 /* ---------- optional sign-in ---------- */
 let AUTH={user:null};
@@ -894,6 +899,8 @@ function maybeShowInstallToast(){
     ?"Install it like an app, right on your home screen. No app store needed."
     :"Add it to your home screen: tap the Share icon, then “Add to Home Screen”.";
   document.getElementById("toast-install").style.display=deferredInstallPrompt?"":"none";
+  const nav=document.querySelector("nav.tabs");
+  toast.style.bottom=(nav.offsetHeight+14)+"px";
   toast.classList.add("on");
 }
 function closeInstallToast(){document.getElementById("install-toast").classList.remove("on")}
