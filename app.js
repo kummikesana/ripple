@@ -435,6 +435,7 @@ function vToday(){
       <div class="scene ripple-anim">${treeSVG(0)}</div>
       <h1>Hi, welcome to Ripple</h1>
       <p class="muted">Small choices ripple out to people, the planet and your pocket. No pressure, no guilt. Just ideas that fit your life, and a little cheering when you try one.</p>
+      <p class="small muted" style="margin-top:-4px">Free, no ads, no account needed. Every fact here is sourced from real places like the UN, the EU and government data, never guesses.</p>
       <div class="trio" style="margin:18px 0 22px">
         <div class="trio-item">${moss()}<p class="small muted"><b>Moss</b><br>Planet</p></div>
         <div class="trio-item">${juno()}<p class="small muted"><b>Juno</b><br>People</p></div>
@@ -444,7 +445,7 @@ function vToday(){
         <a class="btn wide" href="#quiz" id="go-quiz">Find my starting point</a>
         <button class="btn ghost wide" id="go-browse">Just look around</button>
       </div>
-      <p class="foot">Takes about a minute. Nothing leaves your device.</p>`;
+      <p class="foot">Takes about a minute. Nothing you do here leaves your device unless you choose to save it.</p>`;
     document.getElementById("go-browse").onclick=()=>{S.browsing=true;save();location.hash="switches"};
     return;
   }
