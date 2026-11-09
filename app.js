@@ -920,7 +920,6 @@ function render(){
   document.querySelectorAll("nav.tabs a").forEach(a=>a.classList.toggle("on",a.dataset.r===r));
   document.querySelector("nav.tabs").style.display=r==="quiz"?"none":"";
   document.querySelector(".topbar").style.display=r==="quiz"?"none":"";
-  document.getElementById("back").style.visibility=r==="today"?"hidden":"visible";
   if(r==="today")vToday();if(r==="quiz")vQuiz();if(r==="switches")vSwitches();if(r==="garden")vGarden();if(r==="facts")vFacts();if(r==="ask")vAsk();
   renderAcctBadge();
 }
@@ -938,7 +937,6 @@ function renderAcctBadge(){
     b.onclick=openSignIn;
   }
 }
-document.getElementById("back").onclick=()=>{location.hash="today"};
 window.addEventListener("hashchange",()=>{if(location.hash==="#quiz"&&Q.i>=QUIZ.length&&!RES){Q={i:0,ans:[]}}render();scrollTopReset()});
 
 /* ---------- optional sign-in ---------- */
