@@ -136,7 +136,7 @@ function treeSVG(L,opts={}){
   if(L>=5) g+=`<g transform="translate(46 84) scale(.22)">${penny().replace(/<\/?svg[^>]*>/g,"")}</g>`;
   return `<svg viewBox="${vb}" aria-hidden="true">${g}</svg>`;
 }
-const LEVELS=[0,20,60,150,300,550,900,1400];
+const LEVELS=[0,25,80,350,700,1300,2200,3400];
 const LEVEL_NAMES=["A seed","A sprout","A sapling","A young tree","A fruiting tree","A little grove","A thriving garden","A flourishing island"];
 function treeLevel(seeds){let l=0;LEVELS.forEach((t,i)=>{if(seeds>=t)l=i});return l}
 
