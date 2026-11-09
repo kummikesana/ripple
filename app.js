@@ -142,8 +142,41 @@ function treeLevel(seeds){let l=0;LEVELS.forEach((t,i)=>{if(seeds>=t)l=i});retur
 
 /* per-pillar plots: planet, people and prosperity each grow from their own logged choices */
 const PLOT_LEVELS=[0,3,8,18,35];
-const PLOT_MINI_LEVEL=[0,1,2,3,5];
 const PLOT_STAGE_NAMES=["Just planted","Sprouting","Growing well","Thriving","Flourishing"];
+function plotGround(){return `<ellipse cx="60" cy="88" rx="46" ry="9" fill="var(--grass)"/>`}
+function plotSeed(){return `<ellipse cx="60" cy="85" rx="6" ry="3" fill="var(--bark)"/><path d="M60 85 q1 -5 4 -6" stroke="var(--leaf2)" stroke-width="2.6" fill="none" stroke-linecap="round"/>`}
+function plantPlanet(L){
+  if(L===0)return plotGround()+plotSeed();
+  let g=plotGround();
+  if(L===1)g+=`<path d="M60 84 V62" stroke="var(--bark)" stroke-width="3" stroke-linecap="round"/><ellipse cx="51" cy="64" rx="8" ry="5" fill="var(--leaf2)" transform="rotate(-25 51 64)"/><ellipse cx="69" cy="60" rx="9" ry="5" fill="var(--leaf)" transform="rotate(20 69 60)"/>`;
+  if(L===2)g+=`<path d="M60 84 V58" stroke="var(--bark)" stroke-width="4" stroke-linecap="round"/><circle cx="60" cy="48" r="18" fill="var(--leaf)"/><circle cx="50" cy="52" r="10" fill="var(--leaf2)"/>`;
+  if(L===3)g+=`<path d="M60 84 V52" stroke="var(--bark)" stroke-width="5" stroke-linecap="round"/><circle cx="60" cy="40" r="22" fill="var(--leaf)"/><circle cx="44" cy="48" r="14" fill="var(--leaf)"/><circle cx="76" cy="48" r="13" fill="var(--leaf2)"/>`;
+  if(L===4)g+=`<path d="M60 84 V50" stroke="var(--bark)" stroke-width="5" stroke-linecap="round"/><circle cx="60" cy="38" r="23" fill="var(--leaf)"/><circle cx="42" cy="46" r="15" fill="var(--leaf)"/><circle cx="78" cy="46" r="14" fill="var(--leaf2)"/><circle cx="54" cy="52" r="3.4" fill="var(--coral)"/><circle cx="70" cy="56" r="3.4" fill="var(--sun)"/>`;
+  return g;
+}
+function plantPeople(L){
+  if(L===0)return plotGround()+plotSeed();
+  let g=plotGround();
+  if(L===1)g+=`<path d="M60 84 V68" stroke="var(--leaf)" stroke-width="3" stroke-linecap="round"/><ellipse cx="51" cy="72" rx="8" ry="4.5" fill="var(--leaf2)" transform="rotate(-20 51 72)"/><ellipse cx="69" cy="70" rx="8" ry="4.5" fill="var(--leaf)" transform="rotate(20 69 70)"/>`;
+  if(L===2)g+=`<path d="M60 84 V56" stroke="var(--leaf)" stroke-width="3" stroke-linecap="round"/><ellipse cx="50" cy="66" rx="9" ry="5" fill="var(--leaf2)" transform="rotate(-25 50 66)"/><ellipse cx="70" cy="64" rx="9" ry="5" fill="var(--leaf)" transform="rotate(25 70 64)"/><ellipse cx="60" cy="50" rx="6" ry="8" fill="var(--coral)"/>`;
+  if(L===3)g+=`<path d="M60 84 V52" stroke="var(--leaf)" stroke-width="3" stroke-linecap="round"/><ellipse cx="48" cy="64" rx="9" ry="5" fill="var(--leaf)" transform="rotate(-25 48 64)"/><ellipse cx="72" cy="62" rx="9" ry="5" fill="var(--leaf2)" transform="rotate(25 72 62)"/>`+[0,60,120,180,240,300].map(d=>{const r=d*Math.PI/180;return `<ellipse cx="${(60+10*Math.cos(r)).toFixed(1)}" cy="${(40+10*Math.sin(r)).toFixed(1)}" rx="6.5" ry="5" fill="var(--coral)" transform="rotate(${d} ${(60+10*Math.cos(r)).toFixed(1)} ${(40+10*Math.sin(r)).toFixed(1)})"/>`}).join("")+`<circle cx="60" cy="40" r="5.5" fill="var(--sun)"/>`;
+  if(L===4)g+=`<path d="M60 84 V50" stroke="var(--leaf)" stroke-width="3" stroke-linecap="round"/><ellipse cx="46" cy="62" rx="9" ry="5" fill="var(--leaf)" transform="rotate(-25 46 62)"/><ellipse cx="74" cy="60" rx="9" ry="5" fill="var(--leaf2)" transform="rotate(25 74 60)"/>`+[[60,38,1],[38,52,.72],[80,50,.72]].map(([cx,cy,k])=>[0,60,120,180,240,300].map(d=>{const r=d*Math.PI/180;return `<ellipse cx="${(cx+10*k*Math.cos(r)).toFixed(1)}" cy="${(cy+10*k*Math.sin(r)).toFixed(1)}" rx="${(6.5*k).toFixed(1)}" ry="${(5*k).toFixed(1)}" fill="var(--coral)" transform="rotate(${d} ${(cx+10*k*Math.cos(r)).toFixed(1)} ${(cy+10*k*Math.sin(r)).toFixed(1)})"/>`}).join("")+`<circle cx="${cx}" cy="${cy}" r="${5.5*k}" fill="var(--sun)"/>`).join("");
+  return g;
+}
+function plantProsperity(L){
+  if(L===0)return plotGround()+plotSeed();
+  let g=plotGround();
+  const leafPair=(cx,cy,s)=>`<ellipse cx="${cx-7*s}" cy="${cy}" rx="${7*s}" ry="${9*s}" fill="var(--leaf2)" transform="rotate(-18 ${cx-7*s} ${cy})"/><ellipse cx="${cx+7*s}" cy="${cy}" rx="${7*s}" ry="${9*s}" fill="var(--leaf)" transform="rotate(18 ${cx+7*s} ${cy})"/>`;
+  if(L===1)g+=`<path d="M60 84 V70" stroke="var(--bark)" stroke-width="3" stroke-linecap="round"/>`+leafPair(60,68,.8);
+  if(L===2)g+=`<path d="M60 84 V58" stroke="var(--bark)" stroke-width="3" stroke-linecap="round"/>`+leafPair(60,66,.9)+leafPair(60,54,.85);
+  if(L===3)g+=`<path d="M60 84 V50" stroke="var(--bark)" stroke-width="3.5" stroke-linecap="round"/>`+leafPair(60,68,1)+leafPair(60,56,.95)+leafPair(60,45,.8)+`<circle cx="46" cy="78" r="4.2" fill="var(--sun)"/>`;
+  if(L===4)g+=`<path d="M60 84 V46" stroke="var(--bark)" stroke-width="3.5" stroke-linecap="round"/>`+leafPair(60,70,1.05)+leafPair(60,59,1)+leafPair(60,48,.9)+leafPair(60,39,.75)+`<circle cx="45" cy="78" r="4.4" fill="var(--sun)"/><circle cx="76" cy="74" r="3.6" fill="var(--sun)"/>`;
+  return g;
+}
+function plotSVG(pillar,L){
+  const draw=pillar==="planet"?plantPlanet:pillar==="people"?plantPeople:plantProsperity;
+  return `<svg viewBox="0 0 120 100" aria-hidden="true">${draw(L)}</svg>`;
+}
 function plotLevel(n){let l=0;PLOT_LEVELS.forEach((t,i)=>{if(n>=t)l=i});return l}
 function pillarCounts(){
   const c={planet:0,people:0,prosperity:0};
@@ -735,7 +768,7 @@ function vGarden(){
   const plotsHTML=plotKeys.map(k=>{
     const c=CAST[k],n=counts[k],lv=plotLevel(n),nextT=PLOT_LEVELS[lv+1];
     return `<div class="plot${k===weakestKey&&showNudge?" weak":""}" data-pillar="${k}">
-      <div class="mini">${treeSVG(PLOT_MINI_LEVEL[lv],{mini:true})}</div>
+      <div class="mini">${plotSVG(k,lv)}</div>
       <div style="width:28px;margin:0 auto">${c.svg()}</div>
       <b>${c.label}</b>
       <p class="small muted">${PLOT_STAGE_NAMES[lv]}</p>
