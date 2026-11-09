@@ -183,6 +183,66 @@ function plotSVG(pillar,L,sky){
   return `<svg viewBox="0 0 120 100" aria-hidden="true">${bg}${draw(L)}</svg>`;
 }
 function plotLevel(n){let l=0;PLOT_LEVELS.forEach((t,i)=>{if(n>=t)l=i});return l}
+
+/* ---------- shareable garden card ---------- */
+/* Always rendered in the light palette, regardless of the viewer's current
+   theme, so a shared image keeps a consistent look wherever it's posted. */
+const LIGHT_VARS={"--bg":"#F6F1E6","--surface":"#FFFDF9","--surface2":"#ECE2CC","--ink":"#3A3023","--muted":"#6C5D49","--line":"#DDCDA8","--teal":"#5B7452","--teal-ink":"#FFFFFF","--sun":"#B97A2E","--coral":"#BD6A4C","--bark":"#8A5A3C","--pond":"#BFE3DA","--pond2":"#9FD3C6","--murky":"#D6CCBA","--murky2":"#BBAF98","--grass":"#8CC79B","--leaf":"#27703E","--leaf2":"#5CB979"};
+function svgToImage(svgMarkup,w,h){
+  return new Promise((resolve,reject)=>{
+    const resolved=svgMarkup.replace(/var\((--[a-z0-9-]+)\)/g,(m,name)=>LIGHT_VARS[name]||"#000")
+      .replace("<svg ",`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" `);
+    const img=new Image();
+    img.onload=()=>resolve(img);
+    img.onerror=reject;
+    img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(resolved);
+  });
+}
+async function shareGardenCard(){
+  const btn=document.getElementById("share-garden");
+  const label=btn?btn.textContent:"";
+  if(btn){btn.disabled=true;btn.textContent="Preparing…"}
+  try{
+    if(document.fonts&&document.fonts.ready)await document.fonts.ready;
+    const L=treeLevel(S.seeds);
+    const W=1080,H=1080;
+    const canvas=document.createElement("canvas");
+    canvas.width=W;canvas.height=H;
+    const ctx=canvas.getContext("2d");
+    ctx.fillStyle="#F6F1E6";ctx.fillRect(0,0,W,H);
+    ctx.textAlign="center";
+    ctx.fillStyle="#5B7452";
+    ctx.font="700 48px 'Baloo 2'";
+    ctx.fillText("🌱 Ripple",W/2,100);
+    const treeImg=await svgToImage(treeSVG(L),880,495);
+    ctx.drawImage(treeImg,(W-880)/2,140,880,495);
+    ctx.fillStyle="#3A3023";
+    ctx.font="700 58px 'Baloo 2'";
+    ctx.fillText(LEVEL_NAMES[L],W/2,710);
+    ctx.fillStyle="#6C5D49";
+    ctx.font="500 32px 'Nunito Sans'";
+    ctx.fillText(`${S.logs.length} good choice${S.logs.length===1?"":"s"} so far`,W/2,760);
+    ctx.fillStyle="#B97A2E";
+    ctx.font="600 26px 'Nunito Sans'";
+    ctx.fillText("Small choices, real ripples 🌱 ripple-mu-rosy.vercel.app",W/2,990);
+    const blob=await new Promise(res=>canvas.toBlob(res,"image/png"));
+    const shareText=`${LEVEL_NAMES[L]} on Ripple — ${S.logs.length} good choice${S.logs.length===1?"":"s"} so far 🌱`;
+    const file=new File([blob],"ripple-garden.png",{type:"image/png"});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      await navigator.share({files:[file],title:"My Ripple garden",text:shareText});
+    }else if(navigator.share){
+      await navigator.share({title:"My Ripple garden",text:shareText,url:location.origin+location.pathname});
+    }else{
+      const a=document.createElement("a");
+      a.href=URL.createObjectURL(blob);a.download="ripple-garden.png";a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+    }
+  }catch(e){
+    if(e&&e.name!=="AbortError")alert("Couldn’t share that just now. Please try again.");
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent=label}
+  }
+}
 function pillarCounts(){
   const c={planet:0,people:0,prosperity:0};
   S.logs.forEach(l=>{const s=SW[l.id];if(s)c[s.pillar]++});
@@ -790,6 +850,7 @@ function vGarden(){
     <div class="scene ripple-anim">${treeSVG(L)}</div>
     <h2>${LEVEL_NAMES[L]}</h2>
     <p class="muted">${S.seeds} seeds${next?`. ${next-S.seeds} more and it grows again.`:". Your grove is in full bloom!"}</p>
+    <button class="btn ghost sm" id="share-garden">Share my garden</button>
     <div class="recap" style="margin:14px 0">
       <div><b>${S.logs.length}</b><span class="small muted">good choices</span></div>
       <div><b>${S.finished}</b><span class="small muted">tries finished</span></div>
@@ -816,6 +877,7 @@ function vGarden(){
   el.querySelectorAll("[data-try]").forEach(b=>b.onclick=()=>{const [id,d]=b.dataset.try.split("|");startTry(id,+d)});
   el.querySelectorAll("[data-log]").forEach(b=>b.onclick=()=>logIt(b.dataset.log));
   const aqiAsk=document.getElementById("aqi-ask");if(aqiAsk)aqiAsk.onclick=requestAQI;
+  document.getElementById("share-garden").onclick=shareGardenCard;
   document.getElementById("redo").onclick=()=>{Q={i:0,ans:[]};RES=null};
   document.getElementById("reset").onclick=()=>{if(confirm("Start over? This clears your garden, tries and choices on this device.")){S=defaults();save();location.hash="today";render()}};
   const asi=document.getElementById("acct-signin");if(asi)asi.onclick=openSignIn;
