@@ -140,6 +140,17 @@ const LEVELS=[0,25,80,350,700,1300,2200,3400];
 const LEVEL_NAMES=["A seed","A sprout","A sapling","A young tree","A fruiting tree","A little grove","A thriving garden","A flourishing island"];
 function treeLevel(seeds){let l=0;LEVELS.forEach((t,i)=>{if(seeds>=t)l=i});return l}
 
+/* per-pillar plots: planet, people and prosperity each grow from their own logged choices */
+const PLOT_LEVELS=[0,3,8,18,35];
+const PLOT_MINI_LEVEL=[0,1,2,3,5];
+const PLOT_STAGE_NAMES=["Just planted","Sprouting","Growing well","Thriving","Flourishing"];
+function plotLevel(n){let l=0;PLOT_LEVELS.forEach((t,i)=>{if(n>=t)l=i});return l}
+function pillarCounts(){
+  const c={planet:0,people:0,prosperity:0};
+  S.logs.forEach(l=>{const s=SW[l.id];if(s)c[s.pillar]++});
+  return c;
+}
+
 /* ---------- content ---------- */
 const STAGES=[
   {name:"Seed",line:"Every big tree starts here. We’ll keep things small and easy, with no rush at all."},
@@ -715,6 +726,22 @@ function vAsk(){
 function vGarden(){
   const el=document.getElementById("v-garden");
   const L=treeLevel(S.seeds);const next=LEVELS[L+1];
+  const counts=pillarCounts();
+  const plotKeys=["planet","people","prosperity"];
+  const weakestKey=plotKeys.reduce((a,b)=>counts[b]<counts[a]?b:a);
+  const maxCount=Math.max(...plotKeys.map(k=>counts[k]));
+  const showNudge=S.logs.length>=3&&counts[weakestKey]<maxCount;
+  const suggestion=showNudge?SWITCHES.find(s=>s.pillar===weakestKey&&s.stage<=stage()&&!S.already.includes(s.id)&&!S.tries.some(t=>t.id===s.id)):null;
+  const plotsHTML=plotKeys.map(k=>{
+    const c=CAST[k],n=counts[k],lv=plotLevel(n),nextT=PLOT_LEVELS[lv+1];
+    return `<div class="plot${k===weakestKey&&showNudge?" weak":""}" data-pillar="${k}">
+      <div class="mini">${treeSVG(PLOT_MINI_LEVEL[lv],{mini:true})}</div>
+      <div style="width:28px;margin:0 auto">${c.svg()}</div>
+      <b>${c.label}</b>
+      <p class="small muted">${PLOT_STAGE_NAMES[lv]}</p>
+      <p class="small muted">${n} choice${n===1?"":"s"}${nextT?`, ${nextT-n} to grow`:""}</p>
+    </div>`;
+  }).join("");
   el.innerHTML=`
     <h1>My garden</h1>
     <div class="scene ripple-anim">${treeSVG(L)}</div>
@@ -731,6 +758,10 @@ function vGarden(){
         <div><b>${new Intl.NumberFormat("en").format(Math.round(GLOBAL_STATS.total_co2))} kg</b><span class="small muted">CO2 avoided</span></div>
       </div>
     </div>`:""}
+    <div class="panel"><h3>Your ecosystem</h3><p class="small muted" style="margin:0 0 10px">Each plot grows from the choices you log in that pillar</p>
+      <div class="plots">${plotsHTML}</div>
+      ${suggestion?`<p class="small" style="margin-top:12px"><b>${CAST[weakestKey].label}</b> could use some attention. Here’s an idea:</p>${swCard(suggestion)}`:""}
+    </div>
     ${S.already.length?`<div class="panel"><h3>Habits you keep</h3><div class="already">${S.already.map(id=>`<span class="pill ${SW[id].pillar}">${SW[id].title}</span>`).join("")}</div></div>`:""}
     <div class="panel"><h3>Your stage</h3><p class="small muted">Set from your quiz answers. Retake the quiz if it doesn’t feel right anymore.</p>
       <div class="stages">${STAGES.map((s,i)=>`<div class="stage${S.stage===i?" on":""}" aria-current="${S.stage===i}">${treeSVG([0,1,2,5][i],{mini:true})}${s.name}</div>`).join("")}</div>
@@ -739,6 +770,8 @@ function vGarden(){
     </div>
     <div class="panel">${isSignedIn()?`<h3>Account</h3><p class="small">Saved to <b>${esc(AUTH.user.email)}</b>. It’ll follow you to any device you sign into.</p><div class="actions"><button class="btn ghost sm" id="acct-signout">Sign out</button><button class="link small" id="acct-delete">Delete my account</button></div>`:`<h3>Keep this safe</h3><p class="small muted">Sign in and your garden follows you to any device. Totally optional, nothing changes if you skip it.</p><button class="btn sm" id="acct-signin">Sign in</button>`}</div>
     <p class="foot"><button class="link" id="reset">Start over</button><br>${isSignedIn()?"Saved to your account, and on this device.":"Everything is saved on this device only."}<br><a href="privacy.html">Privacy</a></p>`;
+  el.querySelectorAll("[data-try]").forEach(b=>b.onclick=()=>{const [id,d]=b.dataset.try.split("|");startTry(id,+d)});
+  el.querySelectorAll("[data-log]").forEach(b=>b.onclick=()=>logIt(b.dataset.log));
   document.getElementById("redo").onclick=()=>{Q={i:0,ans:[]};RES=null};
   document.getElementById("reset").onclick=()=>{if(confirm("Start over? This clears your garden, tries and choices on this device.")){S=defaults();save();location.hash="today";render()}};
   const asi=document.getElementById("acct-signin");if(asi)asi.onclick=openSignIn;
