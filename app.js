@@ -173,9 +173,14 @@ function plantProsperity(L){
   if(L===4)g+=`<path d="M60 84 V46" stroke="var(--bark)" stroke-width="3.5" stroke-linecap="round"/>`+leafPair(60,70,1.05)+leafPair(60,59,1)+leafPair(60,48,.9)+leafPair(60,39,.75)+`<circle cx="45" cy="78" r="4.4" fill="var(--sun)"/><circle cx="76" cy="74" r="3.6" fill="var(--sun)"/>`;
   return g;
 }
-function plotSVG(pillar,L){
+function plotSVG(pillar,L,sky){
   const draw=pillar==="planet"?plantPlanet:pillar==="people"?plantPeople:plantProsperity;
-  return `<svg viewBox="0 0 120 100" aria-hidden="true">${draw(L)}</svg>`;
+  let bg="";
+  if(sky){
+    bg=`<rect x="0" y="0" width="120" height="90" fill="${sky.color}"/>`;
+    if(sky.aqi>=4)bg+=`<g opacity=".35" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M10 20 h26M74 14 h30M18 34 h22"/></g>`;
+  }
+  return `<svg viewBox="0 0 120 100" aria-hidden="true">${bg}${draw(L)}</svg>`;
 }
 function plotLevel(n){let l=0;PLOT_LEVELS.forEach((t,i)=>{if(n>=t)l=i});return l}
 function pillarCounts(){
@@ -765,14 +770,19 @@ function vGarden(){
   const maxCount=Math.max(...plotKeys.map(k=>counts[k]));
   const showNudge=S.logs.length>=3&&counts[weakestKey]<maxCount;
   const suggestion=showNudge?SWITCHES.find(s=>s.pillar===weakestKey&&s.stage<=stage()&&!S.already.includes(s.id)&&!S.tries.some(t=>t.id===s.id)):null;
+  const aqiCache=getAQICache();
+  const aqiOk=aqiCache&&aqiCache.status==="ok";
   const plotsHTML=plotKeys.map(k=>{
     const c=CAST[k],n=counts[k],lv=plotLevel(n),nextT=PLOT_LEVELS[lv+1];
+    const sky=k==="planet"&&aqiOk?{color:AQI_SKY[aqiCache.aqi],aqi:aqiCache.aqi}:null;
+    const air=k==="planet"?(aqiOk?`<p class="small muted">${aqiCache.category} air today</p>`:`<button class="link small" id="aqi-ask" style="padding:2px">Show today’s air</button>`):"";
     return `<div class="plot${k===weakestKey&&showNudge?" weak":""}" data-pillar="${k}">
-      <div class="mini">${plotSVG(k,lv)}</div>
+      <div class="mini">${plotSVG(k,lv,sky)}</div>
       <div style="width:28px;margin:0 auto">${c.svg()}</div>
       <b>${c.label}</b>
       <p class="small muted">${PLOT_STAGE_NAMES[lv]}</p>
       <p class="small muted">${n} choice${n===1?"":"s"}${nextT?`, ${nextT-n} to grow`:""}</p>
+      ${air}
     </div>`;
   }).join("");
   el.innerHTML=`
@@ -805,6 +815,7 @@ function vGarden(){
     <p class="foot"><button class="link" id="reset">Start over</button><br>${isSignedIn()?"Saved to your account, and on this device.":"Everything is saved on this device only."}<br><a href="privacy.html">Privacy</a></p>`;
   el.querySelectorAll("[data-try]").forEach(b=>b.onclick=()=>{const [id,d]=b.dataset.try.split("|");startTry(id,+d)});
   el.querySelectorAll("[data-log]").forEach(b=>b.onclick=()=>logIt(b.dataset.log));
+  const aqiAsk=document.getElementById("aqi-ask");if(aqiAsk)aqiAsk.onclick=requestAQI;
   document.getElementById("redo").onclick=()=>{Q={i:0,ans:[]};RES=null};
   document.getElementById("reset").onclick=()=>{if(confirm("Start over? This clears your garden, tries and choices on this device.")){S=defaults();save();location.hash="today";render()}};
   const asi=document.getElementById("acct-signin");if(asi)asi.onclick=openSignIn;
@@ -893,6 +904,34 @@ function fetchGlobalStats(){
     GLOBAL_STATS=data;
     if(location.hash.slice(1)==="garden")vGarden();
   },()=>{});
+}
+
+/* ---------- today's air (optional, device-local) ---------- */
+const AQI_KEY="ripple-aqi";
+const AQI_SKY={1:"#BEE3F8",2:"#CBD6CB",3:"#D9CBA0",4:"#D3A878",5:"#A98C7B"};
+const AQI_STALE_MS=3*60*60*1000;
+function getAQICache(){try{return JSON.parse(localStorage.getItem(AQI_KEY)||"null")}catch(e){return null}}
+function setAQICache(v){try{localStorage.setItem(AQI_KEY,JSON.stringify(v))}catch(e){}}
+function fetchAQI(lat,lon){
+  fetch(`/api/aqi?lat=${lat}&lon=${lon}`).then(r=>r.ok?r.json():null).then(data=>{
+    if(!data||!data.aqi)return;
+    setAQICache({status:"ok",aqi:data.aqi,category:data.category,lat,lon,fetchedAt:new Date().toISOString()});
+    if(location.hash.slice(1)==="garden")vGarden();
+  }).catch(()=>{});
+}
+function requestAQI(){
+  if(!navigator.geolocation){setAQICache({status:"declined"});vGarden();return}
+  navigator.geolocation.getCurrentPosition(
+    pos=>fetchAQI(pos.coords.latitude,pos.coords.longitude),
+    ()=>{setAQICache({status:"declined"});vGarden()},
+    {timeout:8000}
+  );
+}
+function maybeRefreshAQI(){
+  const c=getAQICache();
+  if(!c||c.status!=="ok"||!navigator.geolocation)return;
+  if(Date.now()-new Date(c.fetchedAt).getTime()<AQI_STALE_MS)return;
+  navigator.geolocation.getCurrentPosition(pos=>fetchAQI(pos.coords.latitude,pos.coords.longitude),()=>{},{maximumAge:AQI_STALE_MS,timeout:8000});
 }
 
 /* ---------- cloud sync & merge ---------- */
@@ -1007,6 +1046,7 @@ window.addEventListener("beforeinstallprompt",(e)=>{e.preventDefault();deferredI
 window.addEventListener("appinstalled",()=>{deferredInstallPrompt=null;closeInstallToast()});
 setTimeout(()=>{installToastTimerDone=true;maybeShowInstallToast()},20000);
 fetchGlobalStats();
+maybeRefreshAQI();
 
 render();
 
