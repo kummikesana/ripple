@@ -322,6 +322,22 @@ const DAILY=[
  {who:"planet",t:"If food waste were a country",b:"Food that is lost or wasted causes around 8 to 10% of global greenhouse gas emissions. As a country, it would rank third, after China and the US.",tryThis:"Plan one ‘clear the fridge’ meal this week.",src:"UNEP, Food Waste Index"},
  {who:"prosperity",t:"There’s treasure in your drawer",b:"Old phones and laptops hold gold, silver, copper and palladium. Yet only about 22% of the world’s e-waste was formally collected and recycled in 2022.",tryThis:"Drop old devices at a shop collection point instead of keeping them in a drawer.",src:"UN Global E-waste Monitor (2024)"}
 ];
+
+/* seasonal moments: recurring real-world dates, shown once per year, never naggy */
+const SEASONS=[
+ {id:"water",sm:3,sd:20,em:3,ed:24,emoji:"💧",pillar:"planet",title:"World Water Day",blurb:"Today’s about water, how we use it, waste it and protect it. Maybe try a switch that saves a little today."},
+ {id:"earth",sm:4,sd:20,em:4,ed:24,emoji:"🌍",pillar:"planet",title:"Earth Day",blurb:"One day, one planet, a lot of people trying a little harder. Good company to be in."},
+ {id:"wed",sm:6,sd:3,em:6,ed:7,emoji:"🌳",pillar:"planet",title:"World Environment Day",blurb:"A day the whole world pauses to think about the planet. We think about it here every day, but today’s a nice nudge."},
+ {id:"pfj",sm:7,sd:1,em:7,ed:31,emoji:"♻️",pillar:"planet",title:"Plastic Free July",blurb:"A whole month, people everywhere trying to cut back on plastic. Even one swap counts."},
+ {id:"zws",sm:9,sd:1,em:9,ed:7,emoji:"🧺",pillar:"planet",title:"Zero Waste Week",blurb:"A week for using things up, fixing what’s broken, and tossing less."},
+ {id:"mbf",sm:11,sd:24,em:11,ed:30,emoji:"🛍️",pillar:"prosperity",title:"Mindful Black Friday",blurb:"Big sales everywhere this week. If you buy, buy what you’ll actually use. If you don’t, that counts too."}
+];
+function activeSeason(d){
+  d=d||new Date();
+  const m=d.getMonth()+1,day=d.getDate();
+  return SEASONS.find(s=>s.sm===s.em?(m===s.sm&&day>=s.sd&&day<=s.ed):((m===s.sm&&day>=s.sd)||(m===s.em&&day<=s.ed)))||null;
+}
+function seasonKey(s,d){return s.id+"-"+(d||new Date()).getFullYear()}
 function dailyCard(){
   const t=today(),d=DAILY[((dayDiff("2026-01-01",t))%DAILY.length+DAILY.length)%DAILY.length],c=CAST[d.who];
   const read=S.dailyRead===t;
@@ -333,7 +349,7 @@ function dailyCard(){
 
 /* ---------- state ---------- */
 const KEY="ripple-v1";
-function defaults(){return{quizDone:false,browsing:false,stage:null,openness:1,already:[],tries:[],finished:0,logs:[],seeds:0,stageFinishedBase:0,inviteSnooze:"",factsDone:[],stars:0,dailyRead:"",signinSnooze:"",installSnooze:""}}
+function defaults(){return{quizDone:false,browsing:false,stage:null,openness:1,already:[],tries:[],finished:0,logs:[],seeds:0,stageFinishedBase:0,inviteSnooze:"",factsDone:[],stars:0,dailyRead:"",signinSnooze:"",installSnooze:"",seasonsSeen:[]}}
 let S=defaults();
 try{const raw=localStorage.getItem(KEY);if(raw)S=Object.assign(defaults(),JSON.parse(raw))}catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}queueCloudSave()}
@@ -438,6 +454,13 @@ function vToday(){
       <div class="stat"><b>${S.logs.length}</b><div class="small muted">good choices so far</div></div>
       ${treeSVG(L)}
     </div>`;
+  const season=activeSeason();
+  const sk=season?seasonKey(season):null;
+  if(season&&!S.seasonsSeen.includes(sk)){
+    const c=CAST[season.pillar];
+    html+=`<div class="panel invite season"><div class="row"><div style="width:60px;flex:none">${c.svg()}</div><div><h3>${season.emoji} ${season.title}</h3><p class="small">${season.blurb}</p></div></div>
+      <div class="actions"><button class="btn sun sm" id="season-ok">Got it</button></div></div>`;
+  }
   html+=dailyCard();
 
   // stage invite
@@ -518,6 +541,8 @@ function vToday(){
   const sy=document.getElementById("signin-yes"),sn=document.getElementById("signin-no");
   if(sy)sy.onclick=openSignIn;
   if(sn)sn.onclick=()=>{S.signinSnooze=today();save();render()};
+  const seasonOk=document.getElementById("season-ok");
+  if(seasonOk)seasonOk.onclick=()=>{S.seasonsSeen.push(sk);save();render()};
 }
 
 /* quiz */
@@ -1030,6 +1055,7 @@ function mergeStates(local,account){
   out.signinSnooze=(local.signinSnooze||"")>(account.signinSnooze||"")?local.signinSnooze:account.signinSnooze;
   out.installSnooze=(local.installSnooze||"")>(account.installSnooze||"")?local.installSnooze:account.installSnooze;
   out.factsDone=Array.from(new Set([...(local.factsDone||[]),...(account.factsDone||[])]));
+  out.seasonsSeen=Array.from(new Set([...(local.seasonsSeen||[]),...(account.seasonsSeen||[])]));
   out.stars=Math.max(local.stars||0,account.stars||0);
   out.dailyRead=(local.dailyRead||"")>(account.dailyRead||"")?local.dailyRead:account.dailyRead;
   out.asked=Array.from(new Set([...(local.asked||[]),...(account.asked||[])]));

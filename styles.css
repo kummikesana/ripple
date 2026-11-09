@@ -74,6 +74,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 /* panels */
 .panel{background:var(--surface);border:2px solid var(--line);border-radius:20px;padding:16px;margin:14px 0}
 .panel.invite{border-color:var(--sun);background:color-mix(in srgb,var(--sun) 12%,var(--surface))}
+.panel.invite.season{border-color:var(--teal);background:color-mix(in srgb,var(--teal) 12%,var(--surface))}
 .section-title{display:flex;justify-content:space-between;align-items:baseline;margin:26px 0 6px}
 
 /* try card */
