@@ -1016,8 +1016,38 @@ function renderSignInBody(){
     sb.auth.signInWithOAuth({provider:"google",options:{redirectTo:redirectTarget()}});
   };
 }
-function openSignIn(){renderSignInBody();document.getElementById("signin").classList.add("on")}
-function closeSignIn(){document.getElementById("signin").classList.remove("on");maybeShowInstallToast()}
+function openSignIn(){
+  renderSignInBody();
+  document.getElementById("signin-card").style.transform="";
+  document.getElementById("signin").classList.add("on");
+}
+function closeSignIn(){
+  document.getElementById("signin").classList.remove("on");
+  document.getElementById("signin-card").style.transform="";
+  maybeShowInstallToast();
+}
+(()=>{
+  const card=document.getElementById("signin-card"),grabber=document.getElementById("signin-grabber");
+  let startY=0,dragY=0,dragging=false;
+  grabber.addEventListener("pointerdown",e=>{
+    dragging=true;startY=e.clientY;dragY=0;
+    card.classList.add("dragging");
+    grabber.setPointerCapture(e.pointerId);
+  });
+  grabber.addEventListener("pointermove",e=>{
+    if(!dragging)return;
+    dragY=Math.max(0,e.clientY-startY);
+    card.style.transform=`translateY(${dragY}px)`;
+  });
+  const release=()=>{
+    if(!dragging)return;
+    dragging=false;
+    card.classList.remove("dragging");
+    if(dragY>90)closeSignIn();else card.style.transform="";
+  };
+  grabber.addEventListener("pointerup",release);
+  grabber.addEventListener("pointercancel",release);
+})();
 document.getElementById("signin-close").onclick=closeSignIn;
 document.getElementById("signin").addEventListener("click",e=>{if(e.target.id==="signin")closeSignIn()});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&document.getElementById("signin").classList.contains("on"))closeSignIn()});
