@@ -53,6 +53,23 @@ function sfxBig(){playChime([[523.25,0,.1],[659.25,.08,.1],[783.99,.16,.1],[1046
 function sfxBySeeds(seeds){(seeds<=0?sfxTick:seeds<=5?sfxSmall:seeds<=10?sfxMedium:sfxBig)()}
 function sfxByStars(stars){(stars>=3?sfxMedium:stars===2?sfxSmall:sfxTick)()}
 
+/* Haptics run independent of the sound volume setting, same as Apple's own
+   guidance: they're a fallback for when audio can't be heard or is muted,
+   not a duplicate of it. navigator.vibrate is Android-only today (iOS
+   Safari has never implemented it); it's a silent no-op everywhere else,
+   including once this ships wrapped in Capacitor, where a Haptics plugin
+   call can replace vibrate() here for real Taptic feedback on iOS too. */
+function vibrate(pattern){
+  if(!navigator.vibrate)return;
+  try{navigator.vibrate(pattern)}catch(e){}
+}
+function hapticTick(){vibrate(10)}
+function hapticSmall(){vibrate(15)}
+function hapticMedium(){vibrate([15,30,15])}
+function hapticBig(){vibrate([20,40,20,40,30])}
+function hapticBySeeds(seeds){(seeds<=0?hapticTick:seeds<=5?hapticSmall:seeds<=10?hapticMedium:hapticBig)()}
+function hapticByStars(stars){(stars>=3?hapticMedium:stars===2?hapticSmall:hapticTick)()}
+
 function updateVolumeUI(){
   const v=getVolume();
   const btn=document.getElementById("sound-btn");
@@ -387,6 +404,7 @@ function celebrate(pillar,msg,seeds){
   const el=document.getElementById("cele");el.classList.add("on");
   document.getElementById("cele-close").focus();
   sfxBySeeds(seeds);
+  hapticBySeeds(seeds);
 }
 function closeCele(){document.getElementById("cele").classList.remove("on");render();maybeShowInstallToast()}
 let ackTimer=null;
@@ -398,6 +416,7 @@ function ack(pillar,msg,seeds){
   document.getElementById("ack-msg").textContent=msg||lines[Math.floor(Math.random()*lines.length)];
   document.getElementById("ack-seeds").textContent=seeds?`+${seeds} seeds`:"";
   sfxBySeeds(seeds);
+  hapticBySeeds(seeds);
   el.classList.remove("on");void el.offsetWidth;el.classList.add("on");
   clearTimeout(ackTimer);
   ackTimer=setTimeout(()=>el.classList.remove("on"),2200);
@@ -742,7 +761,7 @@ function vFacts(){
     bindChips();return;
   }
   const f=T.facts[F.i],c=CAST[f.who||T.who];
-  const record=()=>{if(!st.done.includes(F.i))st.done.push(F.i);st.stars+=F.stars;S.seeds+=F.stars;if(st.done.length>=unlocked(CUR))st.last=today();save();sfxByStars(F.stars);render();scrollTopReset()};
+  const record=()=>{if(!st.done.includes(F.i))st.done.push(F.i);st.stars+=F.stars;S.seeds+=F.stars;if(st.done.length>=unlocked(CUR))st.last=today();save();sfxByStars(F.stars);hapticByStars(F.stars);render();scrollTopReset()};
   if(!F.rev){
     if(f.opts){
       el.innerHTML=head+`<div class="qhead">${c.svg()}<div class="speech"><h2 style="font-size:1.18rem">${f.q}</h2></div></div>
