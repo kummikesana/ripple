@@ -2,3 +2,5 @@
 .vercel
 node_modules
 __pycache__
+.npm-cache
+www

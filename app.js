@@ -122,6 +122,11 @@ volRange.addEventListener("input",()=>{
    devices. The anon key below is safe to ship in the browser only because
    Supabase row level security restricts every row to its own owner (see
    the setup guide). Never put the service role key here or in the repo. */
+/* Absolute base for the two Vercel API routes, so they still resolve once
+   Ripple is served from a Capacitor app's own origin instead of Vercel's.
+   On the Vercel-hosted site itself this is simply same-origin, so nothing
+   changes there. */
+const API_BASE="https://ripple-mu-rosy.vercel.app";
 const SUPABASE_URL="https://pfglxxydmxnvcyjapjte.supabase.co";
 const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmZ2x4eHlkbXhudmN5amFwanRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM1MzQyMzEsImV4cCI6MjEwOTExMDIzMX0.M-OemMsV449NXbNYhip6_e4NM8KzdAZcp3QDYZCG6Bc";
 const sb=(SUPABASE_URL&&SUPABASE_ANON_KEY&&window.supabase)?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
@@ -850,7 +855,7 @@ const esc=t=>(t||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"
 let ASKQ={text:"",i:null,miss:false,rel:[],loading:false,live:null};
 async function askLive(question){
   try{
-    const r=await fetch("/api/ask",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question})});
+    const r=await fetch(`${API_BASE}/api/ask`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question})});
     const data=await r.json().catch(()=>null);
     if(!r.ok||!data||data.error||!data.synthesis)throw new Error("live ask failed");
     ASKQ.loading=false;ASKQ.live=data;vAsk();
@@ -1091,7 +1096,7 @@ const AQI_STALE_MS=3*60*60*1000;
 function getAQICache(){try{return JSON.parse(localStorage.getItem(AQI_KEY)||"null")}catch(e){return null}}
 function setAQICache(v){try{localStorage.setItem(AQI_KEY,JSON.stringify(v))}catch(e){}}
 function fetchAQI(lat,lon){
-  fetch(`/api/aqi?lat=${lat}&lon=${lon}`).then(r=>r.ok?r.json():null).then(data=>{
+  fetch(`${API_BASE}/api/aqi?lat=${lat}&lon=${lon}`).then(r=>r.ok?r.json():null).then(data=>{
     if(!data||!data.aqi)return;
     setAQICache({status:"ok",aqi:data.aqi,category:data.category,lat,lon,fetchedAt:new Date().toISOString()});
     if(location.hash.slice(1)==="garden")vGarden();

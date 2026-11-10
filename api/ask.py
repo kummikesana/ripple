@@ -18,6 +18,15 @@ MAX_QUESTION_LEN = 300
 
 
 class handler(BaseHTTPRequestHandler):
+    def do_OPTIONS(self):
+        # CORS preflight: needed once this is called from a different origin
+        # (the Capacitor-wrapped app), not just the Vercel deployment itself.
+        self.send_response(204)
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.end_headers()
+
     def do_POST(self):
         try:
             length = int(self.headers.get("Content-Length", 0) or 0)
@@ -47,5 +56,6 @@ class handler(BaseHTTPRequestHandler):
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(body)))
+        self.send_header("Access-Control-Allow-Origin", "*")
         self.end_headers()
         self.wfile.write(body)
