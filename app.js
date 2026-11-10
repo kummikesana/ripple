@@ -978,6 +978,7 @@ const ROUTES=["today","quiz","switches","facts","ask","garden"];
 function render(){
   let r=location.hash.slice(1);if(!ROUTES.includes(r))r="today";
   ROUTES.forEach(x=>document.getElementById("v-"+x).classList.toggle("on",x===r));
+  document.getElementById("v-quiz").setAttribute("aria-hidden",r==="quiz"?"false":"true");
   document.querySelectorAll("nav.tabs a").forEach(a=>a.classList.toggle("on",a.dataset.r===r));
   document.querySelector("nav.tabs").style.display=r==="quiz"?"none":"";
   document.querySelector(".topbar").style.display=r==="quiz"?"none":"";
