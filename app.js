@@ -389,6 +389,19 @@ function celebrate(pillar,msg,seeds){
   sfxBySeeds(seeds);
 }
 function closeCele(){document.getElementById("cele").classList.remove("on");render();maybeShowInstallToast()}
+let ackTimer=null;
+function ack(pillar,msg,seeds){
+  const c=CAST[pillar]||CAST.planet;
+  const lines=CHEERS[pillar]||CHEERS.planet;
+  const el=document.getElementById("ack-toast");
+  document.getElementById("ack-char").innerHTML=c.svg();
+  document.getElementById("ack-msg").textContent=msg||lines[Math.floor(Math.random()*lines.length)];
+  document.getElementById("ack-seeds").textContent=seeds?`+${seeds} seeds`:"";
+  sfxBySeeds(seeds);
+  el.classList.remove("on");void el.offsetWidth;el.classList.add("on");
+  clearTimeout(ackTimer);
+  ackTimer=setTimeout(()=>el.classList.remove("on"),2200);
+}
 document.getElementById("cele-close").onclick=closeCele;
 document.getElementById("cele").addEventListener("click",e=>{if(e.target.id==="cele")closeCele()});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&document.getElementById("cele").classList.contains("on"))closeCele()});
@@ -397,17 +410,20 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&document.getElement
 function logIt(id){
   const t=today();
   if(S.logs.some(l=>l.id===id&&l.d===t)){
-    celebrate(SW[id].pillar,"Already counted for today. Nice and consistent!",0);
+    render();
+    ack(SW[id].pillar,"Already counted for today. Nice and consistent!",0);
     return;
   }
   S.logs.push({id,d:t});S.seeds+=5;save();
   bumpGlobalStats(SW[id].impact);
-  celebrate(SW[id].pillar,null,5);
+  render();
+  ack(SW[id].pillar,null,5);
 }
 function startTry(id,days){
   if(S.tries.some(t=>t.id===id))return;
   S.tries.push({id,days,start:today(),hits:[]});S.seeds+=2;save();
-  celebrate(SW[id].pillar,`You’re trying “${SW[id].title.toLowerCase()}” for ${days} days. No pressure, just see how it feels.`,2);
+  render();
+  ack(SW[id].pillar,`Trying “${SW[id].title.toLowerCase()}” for ${days} days.`,2);
 }
 function checkIn(id){
   const t=S.tries.find(x=>x.id===id);if(!t)return;
@@ -415,7 +431,8 @@ function checkIn(id){
   if(!t.hits.includes(d))t.hits.push(d);
   S.logs.push({id,d});S.seeds+=5;save();
   bumpGlobalStats(SW[id].impact);
-  celebrate(SW[id].pillar,null,5);
+  render();
+  ack(SW[id].pillar,null,5);
 }
 function finishTry(id,keep){
   const t=S.tries.find(x=>x.id===id);if(!t)return;
