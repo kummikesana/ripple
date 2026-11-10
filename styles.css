@@ -4,6 +4,7 @@
   --pond:#BFE3DA; --pond2:#9FD3C6; --murky:#D6CCBA; --murky2:#BBAF98; --grass:#8CC79B; --leaf:#27703E; --leaf2:#5CB979; --shadow:0 2px 0 rgba(58,48,35,.14);
   --seed-bg:#F2E9D4; --sprout-bg:#D1EAD5; --sapling-bg:#A5D8B3; --grove-bg:#3E5A3A; --grove-ink:#FFFFFF;
   --tile1:#F4EDDE; --tile2:#DAECDB; --tile3:#E8DCD3;
+  --text-scale:1;
   color-scheme: light;
   box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px);
@@ -18,8 +19,8 @@
   color-scheme: dark;
 }
 *,*::before,*::after{box-sizing:border-box}
-html{height:100%}
-body{margin:0;height:100vh;height:100dvh;display:flex;flex-direction:column;background:var(--bg);color:var(--ink);font-family:"Nunito Sans",ui-rounded,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+html{height:100%;font-size:calc(16px * var(--text-scale))}
+body{margin:0;height:100vh;height:100dvh;display:flex;flex-direction:column;background:var(--bg);color:var(--ink);font-family:"Nunito Sans",ui-rounded,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:1rem;line-height:1.5;-webkit-font-smoothing:antialiased}
 h1,h2,h3{font-family:"Baloo 2",ui-rounded,"Nunito Sans",system-ui,sans-serif;line-height:1.1;margin:0}
 h1{font-size:2.1rem;font-weight:800;letter-spacing:-.01em}
 h2{font-size:1.45rem;font-weight:700}
@@ -141,6 +142,9 @@ details p{font-size:.88rem;color:var(--muted)}
 .plot[data-pillar="people"]{background:color-mix(in srgb,var(--coral) 12%,var(--surface))}
 .plot[data-pillar="prosperity"]{background:color-mix(in srgb,var(--sun) 14%,var(--surface))}
 .plot.weak{border-color:var(--sun);border-style:dashed}
+.textsize{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tsize{border:2px solid var(--line);background:var(--surface);border-radius:14px;padding:10px 4px;font-weight:800;color:var(--ink);min-height:44px}
+.tsize.on{border-color:var(--teal);background:color-mix(in srgb,var(--teal) 15%,var(--surface));color:var(--teal)}
 .stages{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}
 .stage{border:2px solid var(--line);background:var(--surface);border-radius:14px;padding:8px 4px;font-weight:700;font-size:.85rem;text-align:center}
 .stage svg{width:100%;height:46px;display:block}

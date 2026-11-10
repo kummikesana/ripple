@@ -12,6 +12,23 @@ document.getElementById("theme-toggle").onclick=()=>{
   applyTheme(t);
 };
 
+/* ---------- text size ----------
+   A CSS-variable multiplier on html's font-size, so every rem-based size
+   in the stylesheet (which is virtually all of them) scales together.
+   Static HTML/CSS has no bridge to the OS "Larger Text" setting the way
+   native text does, so this stands in for Dynamic Type until the app
+   ships wrapped and can read UIContentSizeCategory instead. */
+const TEXT_SCALES=[1,1.25,1.5,2];
+function getTextScale(){
+  const v=parseFloat(localStorage.getItem("ripple-text-scale"));
+  return TEXT_SCALES.includes(v)?v:1;
+}
+function applyTextScale(v){
+  document.documentElement.style.setProperty("--text-scale",v);
+  document.querySelectorAll("[data-textscale]").forEach(b=>b.classList.toggle("on",+b.dataset.textscale===v));
+}
+applyTextScale(getTextScale());
+
 /* ---------- sound ----------
    Tiny synthesized chimes (Web Audio), no audio files to ship or license.
    On by default at a gentle level, adjustable from the speaker icon. */
@@ -934,12 +951,20 @@ function vGarden(){
       ${S.stage!=null?`<p class="small">${STAGES[stage()].line}</p>`:""}
       <div class="actions"><a class="btn ghost sm" href="#quiz" id="redo">${S.quizDone?"Retake the quiz":"Take the quiz"}</a></div>
     </div>
+    <div class="panel"><h3>Text size</h3><p class="small muted" style="margin:0 0 10px">Make everything in Ripple a bit bigger, if that’s easier to read.</p>
+      <div class="textsize">${TEXT_SCALES.map(v=>`<button class="tsize${getTextScale()===v?" on":""}" data-textscale="${v}" aria-pressed="${getTextScale()===v}" style="font-size:${14+v*4}px">A</button>`).join("")}</div>
+    </div>
     <div class="panel">${isSignedIn()?`<h3>Account</h3><p class="small">Saved to <b>${esc(AUTH.user.email)}</b>. It’ll follow you to any device you sign into.</p><div class="actions"><button class="btn ghost sm" id="acct-signout">Sign out</button><button class="link small" id="acct-delete">Delete my account</button></div>`:`<h3>Keep this safe</h3><p class="small muted">Sign in and your garden follows you to any device. Totally optional, nothing changes if you skip it.</p><button class="btn sm" id="acct-signin">Sign in</button>`}</div>
     <p class="foot"><button class="link" id="reset">Start over</button><br>${isSignedIn()?"Saved to your account, and on this device.":"Everything is saved on this device only."}<br><a href="privacy.html">Privacy</a></p>`;
   el.querySelectorAll("[data-try]").forEach(b=>b.onclick=()=>{const [id,d]=b.dataset.try.split("|");startTry(id,+d)});
   el.querySelectorAll("[data-log]").forEach(b=>b.onclick=()=>logIt(b.dataset.log));
   const aqiAsk=document.getElementById("aqi-ask");if(aqiAsk)aqiAsk.onclick=requestAQI;
   document.getElementById("share-garden").onclick=shareGardenCard;
+  el.querySelectorAll("[data-textscale]").forEach(b=>b.onclick=()=>{
+    const v=+b.dataset.textscale;
+    localStorage.setItem("ripple-text-scale",v);
+    applyTextScale(v);
+  });
   document.getElementById("redo").onclick=()=>{Q={i:0,ans:[]};RES=null};
   document.getElementById("reset").onclick=()=>{if(confirm("Start over? This clears your garden, tries and choices on this device.")){S=defaults();save();location.hash="today";render()}};
   const asi=document.getElementById("acct-signin");if(asi)asi.onclick=openSignIn;
