@@ -459,6 +459,7 @@ function logIt(id){
   }
   S.logs.push({id,d:t});S.seeds+=5;save();
   bumpGlobalStats(SW[id].impact);
+  bumpMyCityStats(SW[id].impact);
   render();
   ack(SW[id].pillar,null,5,fmtImpact(SW[id].impact));
 }
@@ -474,6 +475,7 @@ function checkIn(id){
   if(!t.hits.includes(d))t.hits.push(d);
   S.logs.push({id,d});S.seeds+=5;save();
   bumpGlobalStats(SW[id].impact);
+  bumpMyCityStats(SW[id].impact);
   render();
   ack(SW[id].pillar,null,5,fmtImpact(SW[id].impact));
 }
@@ -949,6 +951,12 @@ function vGarden(){
         <div><b>${new Intl.NumberFormat("en").format(Math.round(GLOBAL_STATS.total_co2))} kg</b><span class="small muted">CO2 avoided</span></div>
       </div>
     </div>`:""}
+    ${CITY_STATS?`<div class="panel"><h3>Together in ${esc(CITY_STATS.city)}</h3><p class="small muted" style="margin:0 0 8px">Everyone nearby who's opted into today's air, added up. Not a leaderboard, just good company.</p>
+      <div class="recap">
+        <div><b>${new Intl.NumberFormat("en").format(CITY_STATS.total_logs)}</b><span class="small muted">good choices</span></div>
+        <div><b>${new Intl.NumberFormat("en").format(Math.round(CITY_STATS.total_co2))} kg</b><span class="small muted">CO2 avoided</span></div>
+      </div>
+    </div>`:""}
     <div class="panel"><h3>Your ecosystem</h3><p class="small muted" style="margin:0 0 10px">Each plot grows from the choices you log in that pillar</p>
       <div class="plots">${plotsHTML}</div>
       ${suggestion?`<p class="small" style="margin-top:12px"><b>${CAST[weakestKey].label}</b> could use some attention. Here’s an idea:</p>${swCard(suggestion)}`:""}
@@ -1095,6 +1103,32 @@ function fetchGlobalStats(){
   },()=>{});
 }
 
+/* ---------- collective impact, by city (anonymous, aggregate-only) ----------
+   Only ever runs once the person has already opted into "today's air" (so
+   this never asks for location on its own), and only ever adds numbers to a
+   city-wide running total. No per-person id is stored, so there's no way to
+   tell who logged what, or even how many distinct people contributed. */
+let CITY_STATS=null;
+function cityKey(city,country){return (city||"").toLowerCase().trim()+"|"+(country||"").toLowerCase().trim()}
+function bumpCityStats(city,country,impact){
+  if(!sb||!city||!impact)return;
+  sb.rpc("increment_city_stats",{
+    p_city:city,p_country:country||"",p_co2:impact.co2||0,p_plastic:impact.plastic||0,p_water:impact.water||0,p_kwh:impact.kwh||0,p_eur:impact.eur||0
+  }).then(()=>{},()=>{});
+}
+function fetchCityStats(city,country){
+  if(!sb||!city)return;
+  sb.from("city_stats").select("*").eq("city_key",cityKey(city,country)).maybeSingle().then(({data})=>{
+    if(!data)return;
+    CITY_STATS=data;
+    if(location.hash.slice(1)==="garden")vGarden();
+  },()=>{});
+}
+function bumpMyCityStats(impact){
+  const ac=getAQICache();
+  if(ac&&ac.status==="ok"&&ac.city)bumpCityStats(ac.city,ac.country,impact);
+}
+
 /* ---------- today's air (optional, device-local) ---------- */
 const AQI_KEY="ripple-aqi";
 const AQI_SKY={1:"#BEE3F8",2:"#CBD6CB",3:"#D9CBA0",4:"#D3A878",5:"#A98C7B"};
@@ -1106,6 +1140,7 @@ function fetchAQI(lat,lon){
     if(!data||!data.aqi)return;
     setAQICache({status:"ok",aqi:data.aqi,category:data.category,city:data.city,country:data.country,lat,lon,fetchedAt:new Date().toISOString()});
     fetchRefCitiesAQI();
+    if(data.city)fetchCityStats(data.city,data.country);
     if(location.hash.slice(1)==="garden")vGarden();
   }).catch(()=>{});
 }
@@ -1263,6 +1298,7 @@ window.addEventListener("appinstalled",()=>{deferredInstallPrompt=null;closeInst
 setTimeout(()=>{installToastTimerDone=true;maybeShowInstallToast()},20000);
 fetchGlobalStats();
 maybeRefreshAQI();
+(()=>{const ac=getAQICache();if(ac&&ac.status==="ok"&&ac.city)fetchCityStats(ac.city,ac.country)})();
 
 render();
 
