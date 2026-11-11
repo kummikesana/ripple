@@ -430,13 +430,15 @@ function celebrate(pillar,msg,seeds){
 }
 function closeCele(){document.getElementById("cele").classList.remove("on");render();maybeShowInstallToast()}
 let ackTimer=null;
-function ack(pillar,msg,seeds){
+function ack(pillar,msg,seeds,impact){
   const c=CAST[pillar]||CAST.planet;
   const lines=CHEERS[pillar]||CHEERS.planet;
   const el=document.getElementById("ack-toast");
   document.getElementById("ack-char").innerHTML=c.svg();
   document.getElementById("ack-msg").textContent=msg||lines[Math.floor(Math.random()*lines.length)];
   document.getElementById("ack-seeds").textContent=seeds?`+${seeds} seeds`:"";
+  const impEl=document.getElementById("ack-impact");
+  if(impact&&impact.length){impEl.textContent=impact.join(" · ");impEl.hidden=false}else{impEl.hidden=true}
   sfxBySeeds(seeds);
   hapticBySeeds(seeds);
   el.classList.remove("on");void el.offsetWidth;el.classList.add("on");
@@ -458,7 +460,7 @@ function logIt(id){
   S.logs.push({id,d:t});S.seeds+=5;save();
   bumpGlobalStats(SW[id].impact);
   render();
-  ack(SW[id].pillar,null,5);
+  ack(SW[id].pillar,null,5,fmtImpact(SW[id].impact));
 }
 function startTry(id,days){
   if(S.tries.some(t=>t.id===id))return;
@@ -473,7 +475,7 @@ function checkIn(id){
   S.logs.push({id,d});S.seeds+=5;save();
   bumpGlobalStats(SW[id].impact);
   render();
-  ack(SW[id].pillar,null,5);
+  ack(SW[id].pillar,null,5,fmtImpact(SW[id].impact));
 }
 function finishTry(id,keep){
   const t=S.tries.find(x=>x.id===id);if(!t)return;
@@ -916,10 +918,11 @@ function vGarden(){
   const suggestion=showNudge?SWITCHES.find(s=>s.pillar===weakestKey&&s.stage<=stage()&&!S.already.includes(s.id)&&!S.tries.some(t=>t.id===s.id)):null;
   const aqiCache=getAQICache();
   const aqiOk=aqiCache&&aqiCache.status==="ok";
+  const refCities=aqiOk?getRefCitiesCache():null;
   const plotsHTML=plotKeys.map(k=>{
     const c=CAST[k],n=counts[k],lv=plotLevel(n),nextT=PLOT_LEVELS[lv+1];
     const sky=k==="planet"&&aqiOk?{color:AQI_SKY[aqiCache.aqi],aqi:aqiCache.aqi}:null;
-    const air=k==="planet"?(aqiOk?`<p class="small muted">${aqiCache.category} air today</p>`:`<button class="link small" id="aqi-ask" style="padding:2px">Show today’s air</button>`):"";
+    const air=k==="planet"?(aqiOk?`<p class="small muted">${aqiCache.category} air today${aqiCache.city?` in ${esc(aqiCache.city)}`:""}</p>`:`<button class="link small" id="aqi-ask" style="padding:2px">Show today’s air</button>`):"";
     return `<div class="plot${k===weakestKey&&showNudge?" weak":""}" data-pillar="${k}">
       <div class="mini">${plotSVG(k,lv,sky)}</div>
       <div style="width:28px;margin:0 auto">${c.svg()}</div>
@@ -950,6 +953,9 @@ function vGarden(){
       <div class="plots">${plotsHTML}</div>
       ${suggestion?`<p class="small" style="margin-top:12px"><b>${CAST[weakestKey].label}</b> could use some attention. Here’s an idea:</p>${swCard(suggestion)}`:""}
     </div>
+    ${aqiOk&&refCities&&refCities.cities.length?`<div class="panel"><h3>How does your air compare?</h3><p class="small muted" style="margin:0 0 10px">Air quality index today, from a handful of cities around the world. Lower is cleaner.</p>
+      <div class="aqi-compare">${[{name:aqiCache.city||"Your city",aqi:aqiCache.aqi,category:aqiCache.category,mine:true},...refCities.cities].sort((a,b)=>a.aqi-b.aqi).map(c=>`<div class="aqi-row${c.mine?" mine":""}"><span class="aqi-dot" style="background:${AQI_SKY[c.aqi]}"></span><b>${esc(c.name)}</b>${c.mine?` <span class="small muted">(you)</span>`:""}<span class="small muted" style="margin-left:auto">${c.category}</span></div>`).join("")}</div>
+    </div>`:""}
     ${S.already.length?`<div class="panel"><h3>Habits you keep</h3><div class="already">${S.already.map(id=>`<span class="pill ${SW[id].pillar}">${SW[id].title}</span>`).join("")}</div></div>`:""}
     <div class="panel"><h3>Your stage</h3><p class="small muted">Set from your quiz answers. Retake the quiz if it doesn’t feel right anymore.</p>
       <div class="stages">${STAGES.map((s,i)=>`<div class="stage${S.stage===i?" on":""}" aria-current="${S.stage===i}">${treeSVG([0,1,2,5][i],{mini:true})}${s.name}</div>`).join("")}</div>
@@ -1098,7 +1104,8 @@ function setAQICache(v){try{localStorage.setItem(AQI_KEY,JSON.stringify(v))}catc
 function fetchAQI(lat,lon){
   fetch(`${API_BASE}/api/aqi?lat=${lat}&lon=${lon}`).then(r=>r.ok?r.json():null).then(data=>{
     if(!data||!data.aqi)return;
-    setAQICache({status:"ok",aqi:data.aqi,category:data.category,lat,lon,fetchedAt:new Date().toISOString()});
+    setAQICache({status:"ok",aqi:data.aqi,category:data.category,city:data.city,country:data.country,lat,lon,fetchedAt:new Date().toISOString()});
+    fetchRefCitiesAQI();
     if(location.hash.slice(1)==="garden")vGarden();
   }).catch(()=>{});
 }
@@ -1115,6 +1122,31 @@ function maybeRefreshAQI(){
   if(!c||c.status!=="ok"||!navigator.geolocation)return;
   if(Date.now()-new Date(c.fetchedAt).getTime()<AQI_STALE_MS)return;
   navigator.geolocation.getCurrentPosition(pos=>fetchAQI(pos.coords.latitude,pos.coords.longitude),()=>{},{maximumAge:AQI_STALE_MS,timeout:8000});
+}
+
+/* ---------- cross-city air comparison ---------- */
+const REF_CITIES=[
+  {name:"Paris",country:"FR",lat:48.8566,lon:2.3522},
+  {name:"Delhi",country:"IN",lat:28.6139,lon:77.2090},
+  {name:"New York",country:"US",lat:40.7128,lon:-74.0060},
+  {name:"London",country:"GB",lat:51.5074,lon:-0.1278},
+  {name:"Beijing",country:"CN",lat:39.9042,lon:116.4074}
+];
+const AQI_CITIES_KEY="ripple-aqi-cities";
+function getRefCitiesCache(){try{return JSON.parse(localStorage.getItem(AQI_CITIES_KEY)||"null")}catch(e){return null}}
+function fetchRefCitiesAQI(){
+  const c=getRefCitiesCache();
+  if(c&&Date.now()-new Date(c.fetchedAt).getTime()<AQI_STALE_MS)return;
+  Promise.all(REF_CITIES.map(city=>
+    fetch(`${API_BASE}/api/aqi?lat=${city.lat}&lon=${city.lon}&skipGeo=1`).then(r=>r.ok?r.json():null).then(data=>
+      data&&data.aqi?{name:city.name,country:city.country,aqi:data.aqi,category:data.category}:null
+    ).catch(()=>null)
+  )).then(results=>{
+    const cities=results.filter(Boolean);
+    if(!cities.length)return;
+    try{localStorage.setItem(AQI_CITIES_KEY,JSON.stringify({cities,fetchedAt:new Date().toISOString()}))}catch(e){}
+    if(location.hash.slice(1)==="garden")vGarden();
+  });
 }
 
 /* ---------- cloud sync & merge ---------- */
