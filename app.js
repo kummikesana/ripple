@@ -217,7 +217,7 @@ function plotSVG(pillar,L,sky){
   let bg="";
   if(sky){
     bg=`<rect x="0" y="0" width="120" height="90" fill="${sky.color}"/>`;
-    if(sky.aqi>=4)bg+=`<g opacity=".35" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M10 20 h26M74 14 h30M18 34 h22"/></g>`;
+    if(sky.aqi>=151)bg+=`<g opacity=".35" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M10 20 h26M74 14 h30M18 34 h22"/></g>`;
   }
   return `<svg viewBox="0 0 120 100" aria-hidden="true">${bg}${draw(L)}</svg>`;
 }
@@ -923,8 +923,8 @@ function vGarden(){
   const refCities=aqiOk?getRefCitiesCache():null;
   const plotsHTML=plotKeys.map(k=>{
     const c=CAST[k],n=counts[k],lv=plotLevel(n),nextT=PLOT_LEVELS[lv+1];
-    const sky=k==="planet"&&aqiOk?{color:AQI_SKY[aqiCache.aqi],aqi:aqiCache.aqi}:null;
-    const air=k==="planet"?(aqiOk?`<p class="small muted">${aqiCache.category} air today${aqiCache.city?` in ${esc(aqiCache.city)}`:""}</p>`:`<button class="link small" id="aqi-ask" style="padding:2px">Show today’s air</button>`):"";
+    const sky=k==="planet"&&aqiOk?{color:aqiColor(aqiCache.aqi),aqi:aqiCache.aqi}:null;
+    const air=k==="planet"?(aqiOk?`<p class="small muted">AQI ${aqiCache.aqi} · ${aqiCache.category} today${aqiCache.city?` in ${esc(aqiCache.city)}`:""}</p>`:`<button class="link small" id="aqi-ask" style="padding:2px">Show today’s air</button>`):"";
     return `<div class="plot${k===weakestKey&&showNudge?" weak":""}" data-pillar="${k}">
       <div class="mini">${plotSVG(k,lv,sky)}</div>
       <div style="width:28px;margin:0 auto">${c.svg()}</div>
@@ -962,7 +962,7 @@ function vGarden(){
       ${suggestion?`<p class="small" style="margin-top:12px"><b>${CAST[weakestKey].label}</b> could use some attention. Here’s an idea:</p>${swCard(suggestion)}`:""}
     </div>
     ${aqiOk&&refCities&&refCities.cities.length?`<div class="panel"><h3>How does your air compare?</h3><p class="small muted" style="margin:0 0 10px">Air quality index today, from a handful of cities around the world. Lower is cleaner.</p>
-      <div class="aqi-compare">${[{name:aqiCache.city||"Your city",aqi:aqiCache.aqi,category:aqiCache.category,mine:true},...refCities.cities].sort((a,b)=>a.aqi-b.aqi).map(c=>`<div class="aqi-row${c.mine?" mine":""}"><span class="aqi-dot" style="background:${AQI_SKY[c.aqi]}"></span><b>${esc(c.name)}</b>${c.mine?` <span class="small muted">(you)</span>`:""}<span class="small muted" style="margin-left:auto">${c.category}</span></div>`).join("")}</div>
+      <div class="aqi-compare">${[{name:aqiCache.city||"Your city",aqi:aqiCache.aqi,category:aqiCache.category,mine:true},...refCities.cities].sort((a,b)=>a.aqi-b.aqi).map(c=>`<div class="aqi-row${c.mine?" mine":""}"><span class="aqi-dot" style="background:${aqiColor(c.aqi)}"></span><b>${esc(c.name)}</b>${c.mine?` <span class="small muted">(you)</span>`:""}<span class="small muted" style="margin-left:auto">${c.aqi} · ${c.category}</span></div>`).join("")}</div>
     </div>`:""}
     ${S.already.length?`<div class="panel"><h3>Habits you keep</h3><div class="already">${S.already.map(id=>`<span class="pill ${SW[id].pillar}">${SW[id].title}</span>`).join("")}</div></div>`:""}
     <div class="panel"><h3>Your stage</h3><p class="small muted">Set from your quiz answers. Retake the quiz if it doesn’t feel right anymore.</p>
@@ -1129,9 +1129,19 @@ function bumpMyCityStats(impact){
   if(ac&&ac.status==="ok"&&ac.city)bumpCityStats(ac.city,ac.country,impact);
 }
 
-/* ---------- today's air (optional, device-local) ---------- */
+/* ---------- today's air (optional, device-local) ----------
+   aqi is the real 0-500 US EPA Air Quality Index (see api/aqi.py), not a
+   1-5 scale, so sky tinting and the haze overlay key off these bands. */
 const AQI_KEY="ripple-aqi";
-const AQI_SKY={1:"#BEE3F8",2:"#CBD6CB",3:"#D9CBA0",4:"#D3A878",5:"#A98C7B"};
+const AQI_BANDS=[
+  {max:50,color:"#BEE3F8"},
+  {max:100,color:"#E3D98C"},
+  {max:150,color:"#E3B56C"},
+  {max:200,color:"#D38A78"},
+  {max:300,color:"#B088B0"},
+  {max:Infinity,color:"#8A5A5A"}
+];
+function aqiColor(aqi){for(const b of AQI_BANDS)if(aqi<=b.max)return b.color;return AQI_BANDS[AQI_BANDS.length-1].color}
 const AQI_STALE_MS=3*60*60*1000;
 function getAQICache(){try{return JSON.parse(localStorage.getItem(AQI_KEY)||"null")}catch(e){return null}}
 function setAQICache(v){try{localStorage.setItem(AQI_KEY,JSON.stringify(v))}catch(e){}}
