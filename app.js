@@ -233,8 +233,12 @@ function ecosystemScene(counts,sky){
     g+=`<rect x="0" y="0" width="${zoneW}" height="${H}" fill="${sky.color}"/>`;
     if(sky.aqi>=151)g+=`<g opacity=".3" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M70 50 h60M230 36 h70M110 76 h50"/></g>`;
   }
+  /* coral and sun (people/prosperity) sit close together on the brand's own
+     colour wheel, so a faint wash leaves them reading as the same shade;
+     a full-zone rect at higher opacity is what actually makes them tell
+     apart, the icon+label above is still the real disambiguator either way. */
+  zones.forEach(z=>{if(!(sky&&z.key==="planet"))g+=`<rect x="${z.cx-zoneW/2}" y="0" width="${zoneW}" height="${H}" fill="${z.fill}" opacity=".4"/>`});
   g+=`<ellipse cx="${W/2}" cy="${H-30}" rx="${W/2-10}" ry="30" fill="var(--grass)"/>`;
-  zones.forEach(z=>{if(!(sky&&z.key==="planet"))g+=`<ellipse cx="${z.cx}" cy="${H-40}" rx="${zoneW/2-16}" ry="56" fill="${z.fill}" opacity=".12"/>`});
   zones.forEach((z,zi)=>{
     const c=CAST[z.key];
     g+=`<g transform="translate(${z.cx-34} 10) scale(.56)">${c.svg().replace(/<\/?svg[^>]*>/g,"")}</g>`;
