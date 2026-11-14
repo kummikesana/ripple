@@ -256,48 +256,63 @@ function ecosystemScene(counts,sky){
   });
   return `<svg viewBox="0 0 ${W} ${H}" aria-hidden="true" preserveAspectRatio="xMidYMid meet">${g}</svg>`;
 }
+/* ---------- pinch/pan/zoom for the ecosystem scene ----------
+   transform-origin is 0 0 (top-left) on .eco-zoom-inner, so tx/ty are plain
+   pixel offsets in the wrap's own coordinate space: a point P in the
+   unscaled content lands at screen position (tx + P*scale). zoomToPoint
+   solves for the tx/ty that keeps whatever content point is currently under
+   the pinch midpoint (or the cursor, for ctrl+wheel) exactly where it was,
+   so the zoom actually anchors to your fingers instead of always scaling
+   from the box's center - that mismatch was the previous bug. */
 let ECO_ZOOM={scale:1,tx:0,ty:0};
-function clampEcoZoom(wrap,inner){
-  const maxS=3.5;
-  ECO_ZOOM.scale=Math.min(maxS,Math.max(1,ECO_ZOOM.scale));
+const ECO_MAX_SCALE=4;
+function clampEcoZoom(wrap){
+  ECO_ZOOM.scale=Math.min(ECO_MAX_SCALE,Math.max(1,ECO_ZOOM.scale));
   const w=wrap.clientWidth,h=wrap.clientHeight;
-  const overX=Math.max(0,w*ECO_ZOOM.scale-w)/2,overY=Math.max(0,h*ECO_ZOOM.scale-h)/2;
-  ECO_ZOOM.tx=Math.min(overX,Math.max(-overX,ECO_ZOOM.tx));
-  ECO_ZOOM.ty=Math.min(overY,Math.max(-overY,ECO_ZOOM.ty));
+  const minTx=Math.min(0,w-w*ECO_ZOOM.scale),minTy=Math.min(0,h-h*ECO_ZOOM.scale);
+  ECO_ZOOM.tx=Math.min(0,Math.max(minTx,ECO_ZOOM.tx));
+  ECO_ZOOM.ty=Math.min(0,Math.max(minTy,ECO_ZOOM.ty));
 }
 function applyEcoZoom(wrap,inner){
-  clampEcoZoom(wrap,inner);
+  clampEcoZoom(wrap);
   inner.style.transform=`translate(${ECO_ZOOM.tx}px,${ECO_ZOOM.ty}px) scale(${ECO_ZOOM.scale})`;
   const reset=document.getElementById("eco-reset");
   if(reset)reset.hidden=ECO_ZOOM.scale<=1.02;
 }
+function zoomEcoToPoint(wrap,inner,newScale,localX,localY){
+  const contentX=(localX-ECO_ZOOM.tx)/ECO_ZOOM.scale,contentY=(localY-ECO_ZOOM.ty)/ECO_ZOOM.scale;
+  ECO_ZOOM.scale=Math.min(ECO_MAX_SCALE,Math.max(1,newScale));
+  ECO_ZOOM.tx=localX-contentX*ECO_ZOOM.scale;
+  ECO_ZOOM.ty=localY-contentY*ECO_ZOOM.scale;
+  applyEcoZoom(wrap,inner);
+}
 function initEcoZoom(){
   const wrap=document.getElementById("eco-zoom-wrap"),inner=document.getElementById("eco-zoom-inner");
   if(!wrap||!inner)return;
+  ECO_ZOOM={scale:1,tx:0,ty:0};
   applyEcoZoom(wrap,inner);
   const pts=new Map();
-  let pinchStart=null;
+  let pinchDist0=null,pinchScale0=null;
   wrap.addEventListener("pointerdown",e=>{
     pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
     wrap.setPointerCapture(e.pointerId);
     if(pts.size===2){
       const [a,b]=[...pts.values()];
-      pinchStart={dist:Math.hypot(a.x-b.x,a.y-b.y),scale:ECO_ZOOM.scale,mid:{x:(a.x+b.x)/2,y:(a.y+b.y)/2},tx:ECO_ZOOM.tx,ty:ECO_ZOOM.ty};
+      pinchDist0=Math.hypot(a.x-b.x,a.y-b.y);
+      pinchScale0=ECO_ZOOM.scale;
     }
   });
   wrap.addEventListener("pointermove",e=>{
     if(!pts.has(e.pointerId))return;
     const prev=pts.get(e.pointerId);
     pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
-    if(pts.size===2&&pinchStart){
+    if(pts.size===2&&pinchDist0){
       e.preventDefault();
+      const rect=wrap.getBoundingClientRect();
       const [a,b]=[...pts.values()];
       const dist=Math.hypot(a.x-b.x,a.y-b.y);
-      ECO_ZOOM.scale=pinchStart.scale*(dist/pinchStart.dist);
-      const mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2};
-      ECO_ZOOM.tx=pinchStart.tx+(mid.x-pinchStart.mid.x);
-      ECO_ZOOM.ty=pinchStart.ty+(mid.y-pinchStart.mid.y);
-      applyEcoZoom(wrap,inner);
+      const newScale=pinchScale0*(dist/pinchDist0);
+      zoomEcoToPoint(wrap,inner,newScale,(a.x+b.x)/2-rect.left,(a.y+b.y)/2-rect.top);
     }else if(pts.size===1&&ECO_ZOOM.scale>1.02){
       e.preventDefault();
       ECO_ZOOM.tx+=e.clientX-prev.x;
@@ -308,14 +323,14 @@ function initEcoZoom(){
        own vertical scroll (touch-action:pan-y) takes over, same as any other
        page content: no fighting the page for a swipe that isn't a pinch. */
   },{passive:false});
-  const release=e=>{pts.delete(e.pointerId);if(pts.size<2)pinchStart=null};
+  const release=e=>{pts.delete(e.pointerId);if(pts.size<2){pinchDist0=null;pinchScale0=null}};
   wrap.addEventListener("pointerup",release);
   wrap.addEventListener("pointercancel",release);
   wrap.addEventListener("wheel",e=>{
     if(!e.ctrlKey)return;
     e.preventDefault();
-    ECO_ZOOM.scale*=Math.pow(1.01,-e.deltaY);
-    applyEcoZoom(wrap,inner);
+    const rect=wrap.getBoundingClientRect();
+    zoomEcoToPoint(wrap,inner,ECO_ZOOM.scale*Math.pow(1.01,-e.deltaY),e.clientX-rect.left,e.clientY-rect.top);
   },{passive:false});
   wrap.addEventListener("dblclick",()=>{ECO_ZOOM={scale:1,tx:0,ty:0};applyEcoZoom(wrap,inner)});
   const resetBtn=document.getElementById("eco-reset");
