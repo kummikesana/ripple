@@ -68,7 +68,6 @@ function sfxSmall(){playChime([[523.25,0,.14],[659.25,.09,.16]])}
 function sfxMedium(){playChime([[523.25,0,.12],[659.25,.09,.12],[783.99,.18,.22]])}
 function sfxBig(){playChime([[523.25,0,.1],[659.25,.08,.1],[783.99,.16,.1],[1046.5,.24,.32]])}
 function sfxBySeeds(seeds){(seeds<=0?sfxTick:seeds<=5?sfxSmall:seeds<=10?sfxMedium:sfxBig)()}
-function sfxByStars(stars){(stars>=3?sfxMedium:stars===2?sfxSmall:sfxTick)()}
 
 /* Haptics run independent of the sound volume setting, same as Apple's own
    guidance: they're a fallback for when audio can't be heard or is muted,
@@ -85,7 +84,6 @@ function hapticSmall(){vibrate(15)}
 function hapticMedium(){vibrate([15,30,15])}
 function hapticBig(){vibrate([20,40,20,40,30])}
 function hapticBySeeds(seeds){(seeds<=0?hapticTick:seeds<=5?hapticSmall:seeds<=10?hapticMedium:hapticBig)()}
-function hapticByStars(stars){(stars>=3?hapticMedium:stars===2?hapticSmall:hapticTick)()}
 
 function updateVolumeUI(){
   const v=getVolume();
@@ -459,20 +457,6 @@ const QUIZ=[
  {who:"prosperity",p:"prosperity",q:"How much food ends up in the bin in a typical week?",o:[["A fair bit",0,[]],["Some",1,[]],["Hardly any",3,["food-waste"]]]},
  {who:"people",q:"Last one. How much room do you have for something new right now?",sub:"Every answer here is a good answer.",o:[["None really, I’m just curious",0,[],0],["A little",0,[],1],["Some",0,[],2],["Plenty",0,[],3]]}
 ];
-const FACTS=[
- {who:"planet",q:"How much mine waste is dug up to get the gold for one wedding ring?",unit:"tonnes",min:0.1,max:100,log:true,ans:20,ansText:"About 20 tonnes",why:"That’s roughly the weight of three elephants, for a ring that weighs a few grams. Most gold ore holds only a few grams of gold per tonne of rock, and the leftover waste can carry cyanide and heavy metals.",tip:"Recycled gold, or certified gold like Fairmined, skips most of that digging.",src:"Earthworks, No Dirty Gold campaign"},
- {who:"prosperity",q:"If you melted all the gold ever mined into one cube, how wide would each side be?",unit:"metres",min:1,max:1000,log:true,ans:22,ansText:"About 22 metres",why:"All the gold in human history, around 216,000 tonnes, would fit in a cube about as tall as a seven-storey building. Roughly two thirds of it was mined after 1950.",tip:"So much gold already exists above ground that recycling could cover a big share of what we use.",src:"World Gold Council"},
- {who:"people",q:"How many children work in cocoa farming in Côte d’Ivoire and Ghana?",unit:"children",min:1000,max:10000000,log:true,ans:1560000,ansText:"About 1.56 million",why:"These two countries grow around 60% of the world’s cocoa. A large study found about 1.56 million children doing hazardous or age-inappropriate work on cocoa farms there.",tip:"Look for chocolate brands that publish where their cocoa comes from, or carry a fair-trade label.",src:"NORC at the University of Chicago (2020)"},
- {who:"planet",q:"What share of the material used to make clothes gets recycled into new clothes?",unit:"%",min:0,max:50,log:false,ans:1,ansText:"Less than 1%",why:"Most clothing ends up burned or in landfill. Blends like cotton-polyester are very hard to separate, so true clothes-to-clothes recycling is still rare.",tip:"The lowest-impact wardrobe is the one you already own. Wear it longer, then pass it on.",src:"Ellen MacArthur Foundation, A New Textiles Economy (2017)"},
- {who:"planet",q:"How much sand and gravel does the world dig up every year?",unit:"billion tonnes",min:1,max:500,log:true,ans:50,ansText:"About 50 billion tonnes",why:"After water, sand is the resource humans use most, for concrete, glass and roads. Desert sand is too smooth and round to bind well, so rivers and beaches get dredged instead. Even desert countries in the Gulf have imported sand for construction.",tip:"Renovating an old building instead of building new keeps a lot of sand in the ground.",src:"UNEP, Sand and Sustainability (2019)"},
- {who:"planet",q:"If the cement industry were a country, what share of the world’s CO2 would it emit?",unit:"%",min:0,max:30,log:false,ans:8,ansText:"About 8%",why:"That would make it the third-largest emitter on Earth, after China and the US. More than half comes from chemistry itself: heating limestone releases CO2 whatever fuel you burn.",tip:"That’s why timber buildings and low-carbon cement are such a big deal in construction right now.",src:"Chatham House, Making Concrete Change (2018)"},
- {who:"planet",q:"How many plastic drinks bottles are bought around the world every minute?",unit:"bottles",min:1000,max:100000000,log:true,ans:1000000,ansText:"About 1 million",why:"That’s well over a billion a day, and most never get recycled into new bottles.",tip:"A refillable bottle you actually like is one of the easiest switches there is.",src:"UN Environment Programme"},
- {who:"people",q:"What share of the world’s cobalt, used in phone and electric car batteries, comes from one country: the Democratic Republic of Congo?",unit:"%",min:0,max:100,log:false,ans:70,ansText:"About 70%",why:"Some of it comes from small, hand-dug mines where investigators have documented child labour and dangerous tunnels.",tip:"Keeping your phone a year longer, or buying refurbished, means fewer new batteries.",src:"US Geological Survey; Amnesty International (2016)"},
- {who:"planet",q:"The Aral Sea was once one of the four biggest lakes on Earth. How much of it has disappeared, mostly to irrigate cotton?",unit:"%",min:0,max:100,log:false,ans:90,ansText:"About 90%",why:"From the 1960s, the rivers feeding it were diverted to grow cotton in the desert. Fishing towns ended up tens of kilometres from the water, with ships left rusting in the sand.",tip:"Cotton is thirsty. Buying fewer, longer-lasting clothes eases the pressure.",src:"UNEP; NASA Earth Observatory"},
- {who:"people",q:"What share of packaged products in a typical supermarket contain palm oil?",unit:"%",min:0,max:100,log:false,ans:50,ansText:"About half",why:"Bread, biscuits, shampoo, lipstick, detergent. It hides behind dozens of label names. Palm is actually very productive per hectare, but its expansion has cleared rainforest that orangutans and Indigenous communities depend on.",tip:"Rather than avoiding it completely, look for RSPO-certified or deforestation-free sourcing.",src:"WWF"},
- {who:"prosperity",q:"How many litres of water go into one cup of coffee, from farm to cup?",unit:"litres",min:1,max:1000,log:true,ans:140,ansText:"About 140 litres",why:"Almost all of it is the rain and irrigation needed to grow the beans, not the water in your mug.",tip:"Brew only what you’ll drink. Pouring half a pot away wastes the farm’s water too.",src:"Water Footprint Network"},
- {who:"prosperity",q:"Moving one tonne of goods one kilometre: how many times more CO2 does a plane emit than a container ship?",unit:"times",min:1,max:500,log:true,ans:50,ansText:"Around 50 times",why:"Container ships are incredibly efficient per tonne. So how food travelled matters more than how far: bananas from Ecuador come by ship, while out-of-season berries or asparagus are often flown in.",tip:"Delicate fresh produce out of season is the most likely to have been flown.",src:"Our World in Data, freight emissions"}
-];
 const DAILY=[
  {who:"planet",t:"Bananas sail, berries fly",b:"Bananas are picked green and shipped across the ocean in cooled containers at about 13 °C, then ripened in special rooms near you. Ships are so efficient that a banana from Ecuador can have a smaller footprint than a vegetable flown in out of season.",tryThis:"When buying fresh produce out of season, think about how it travelled, not just how far.",src:"Our World in Data"},
  {who:"prosperity",t:"Slow ships save fuel",b:"A ship’s engine power rises roughly with the cube of its speed. Sailing about 10% slower cuts the fuel per journey by around a fifth, which is why many shipping lines now practise ‘slow steaming’.",tryThis:"Same idea on the road: 110 instead of 130 km/h on the motorway noticeably cuts your fuel use.",src:"Ship propulsion physics; ADEME"},
@@ -509,12 +493,12 @@ function dailyCard(){
   return `<div class="panel daily"><p class="small muted" style="margin:0 0 8px">Today ${c.name} wants to tell you</p>
     <div class="who">${c.svg()}<div><h3>${d.t}</h3><p>${d.b}</p></div></div>
     <div class="try-this"><b>Try this:</b> ${d.tryThis}</div><p class="src">Source: ${d.src}</p>
-    <div class="actions">${read?`<span class="badge">Read today. Something new tomorrow!</span>`:`<button class="btn sm" id="daily-ok">Got it, +2 seeds</button>`}<a class="btn ghost sm" href="#facts">Play Did you know</a></div></div>`;
+    <div class="actions">${read?`<span class="badge">Read today. Something new tomorrow!</span>`:`<button class="btn sm" id="daily-ok">Got it, +2 seeds</button>`}<a class="btn ghost sm" href="#challenges">See challenges</a></div></div>`;
 }
 
 /* ---------- state ---------- */
 const KEY="ripple-v1";
-function defaults(){return{quizDone:false,browsing:false,stage:null,openness:1,already:[],tries:[],finished:0,logs:[],seeds:0,stageFinishedBase:0,inviteSnooze:"",factsDone:[],stars:0,dailyRead:"",signinSnooze:"",installSnooze:"",seasonsSeen:[]}}
+function defaults(){return{quizDone:false,browsing:false,stage:null,openness:1,already:[],tries:[],finished:0,logs:[],seeds:0,stageFinishedBase:0,inviteSnooze:"",dailyRead:"",signinSnooze:"",installSnooze:"",seasonsSeen:[],challengesJoined:[]}}
 let S=defaults();
 try{const raw=localStorage.getItem(KEY);if(raw)S=Object.assign(defaults(),JSON.parse(raw))}catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}queueCloudSave()}
@@ -838,124 +822,87 @@ function vSwitches(){
   const more=document.getElementById("sw-more");if(more)more.onclick=()=>{SWSHOW+=4;vSwitches()};
 }
 
-/* did you know: topic tracks */
-const MKT=[
- {q:"From 27 September 2026, what happens to a vague claim like ‘eco-friendly’ on products sold to EU consumers?",opts:["It’s banned unless the company can prove recognised excellent environmental performance","It’s fine as long as it’s in small print","It just needs a carbon offset certificate","Nothing, the rule was cancelled"],ans:0,why:"The EU’s Empowering Consumers for the Green Transition Directive now applies in all 27 member states. Generic words like ‘green’, ‘eco-friendly’ or ‘climate friendly’ need proof, and there was no transition period: products already on shelves had to comply too.",int:"This is why ads are starting to sound different: brands can’t lean on vague words like ‘eco-friendly’ anymore, they have to back claims up with proof.",src:"Directive (EU) 2024/825; Latham & Watkins (Sept 2026)"},
- {q:"True or false: under the new EU rules, a brand can still call a product ‘climate neutral’ because it buys carbon offsets.",opts:["True","False"],ans:1,why:"Claims that a product has a neutral, reduced or positive climate impact based on offsetting are now banned for EU consumers. Companies can still talk about projects they fund, just not use them to call the product neutral.",int:"So if you see ‘climate neutral’ on a label again, it has to be backed by real emission cuts, not just offsets bought elsewhere.",src:"Directive (EU) 2024/825; TLT LLP"},
- {q:"True or false: a brand name like ‘EcoClean’ is exempt from the new EU green claims rules because it’s a registered trademark.",opts:["True","False"],ans:1,why:"The ban on unproven generic environmental claims also reaches existing brand and trademark names, despite intellectual property protection. Some brands have to rename products or prove the claim.",int:"Even a brand’s name isn’t safe from this: calling something ‘EcoClean’ doesn’t exempt it from having to prove the claim.",src:"Trellis (Sept 2026)"},
- {q:"In an EU-wide check of websites, what share of green claims did authorities think could be exaggerated, false or deceptive?",unit:"%",min:0,max:100,log:false,ans:42,ansText:"42%",why:"Authorities looked closely at 344 suspicious claims in fashion, cosmetics and household goods. In 37% of cases the claims used vague words like ‘conscious’ or ‘sustainable’, and in 59% the evidence wasn’t easy to find. This sweep fed directly into the new EU rules.",int:"That’s nearly half of the green claims you scroll past every day. Worth a raised eyebrow next time you see ‘sustainable’ on a label.",src:"European Commission website sweep (Jan 2021)"},
- {q:"In March 2024, an Amsterdam court reviewed 19 environmental statements from KLM’s ‘Fly Responsibly’ ads. How many did it find misleading?",opts:["3","9","15","All 19"],ans:2,why:"The court said lines like creating ‘a more sustainable future’ painted an overly rosy picture and overstated what sustainable aviation fuel can do today. KLM wasn’t fined, but has to be ‘honest and concrete’ in future ads.",int:"A reminder that even hopeful-sounding words like ‘a more sustainable future’ can cross the line into misleading, if they oversell what’s actually true today.",src:"District Court of Amsterdam, 20 March 2024"},
- {q:"In October 2025, a Paris court ruled that TotalEnergies had misled consumers. Which claim was the problem?",opts:["Its ambition to reach carbon neutrality by 2050 while still growing fossil fuel production","Calling its petrol ‘premium’","Using green in its logo","Its loyalty card prices"],ans:0,why:"It was the first time a court found an oil major guilty of greenwashing its climate strategy. The company had to remove the messages and publish the ruling on its website. The court dismissed the NGOs’ other claims, about gas and biofuels.",int:"A company’s ‘net zero by 2050’ pledge can now be challenged in court if it doesn’t match what the company is actually investing in.",src:"Paris Judicial Court, 23 Oct 2025; Columbia Sabin Center"},
- {q:"Under the new EU rules, fines for misleading green claims can reach up to what share of a company’s annual turnover?",opts:["0.5%","1%","4%","10%"],ans:2,why:"National consumer authorities and courts enforce the rules, and for serious breaches fines can reach up to 4% of annual turnover.",int:"Green claims aren’t just an ad department’s problem anymore, they can cost a company real money.",src:"Anthesis; EU Unfair Commercial Practices Directive"}
+/* ---------- challenges: joinable, time-boxed, with other people doing it too ---------- */
+const CHALLENGES=[
+ {id:"veg-week",emoji:"🥗",title:"3 vegetarian meals this week",switchId:"veg-meal",days:7},
+ {id:"short-shower-week",emoji:"🚿",title:"Shorter showers, one week",switchId:"short-shower",days:7},
+ {id:"bottle-week",emoji:"💧",title:"Refill, don't rebuy, one week",switchId:"tap-water",days:7},
+ {id:"unplug-week",emoji:"🔌",title:"Unplug at night, one week",switchId:"unplug",days:7},
+ {id:"volunteer-month",emoji:"🤝",title:"Give an hour this month",switchId:"volunteer",days:30}
 ];
-const SC=[
- {q:"On average, how many times larger are companies’ supply chain (Scope 3) emissions than the emissions from their own operations?",unit:"times",min:1,max:100,log:true,ans:26,ansText:"About 26 times",why:"That’s from data companies reported to CDP for 2023. Yet only 15% of those companies had set a target for their supply chain emissions.",int:"Most of what a product actually costs the planet happens before it ever reaches a shop shelf, in the supply chain, not the storefront.",src:"CDP & BCG, Scope 3 Upstream (2024)"},
- {q:"Since 19 July 2026, what can large fashion and footwear companies no longer do in the EU?",opts:["Destroy unsold clothes and shoes","Sell polyester","Hold end-of-season sales","Import from outside the EU"],ans:0,why:"Before the ban, an estimated 4 to 9% of unsold textiles in Europe were destroyed before ever being worn. Large companies now have to resell, donate or reuse them, with a few strict exceptions. Medium-sized firms follow in 2030.",int:"A reminder of just how much gets made and never worn, and why that’s finally starting to change.",src:"European Commission; ESPR Delegated Regulation (EU) 2026/296"},
- {q:"After being postponed twice, when does the EU Deforestation Regulation (EUDR) start applying to large companies?",opts:["30 December 2024","30 December 2025","30 December 2026","It was scrapped"],ans:2,why:"Companies selling cattle, cocoa, coffee, palm oil, rubber, soy or wood products in the EU must show they’re deforestation-free. Small and micro firms follow in June 2027. In May 2026 the Commission said its simplifications would cut compliance costs by about 75%.",int:"Knowing exactly which farm your coffee or chocolate came from is becoming the new normal, not a nice-to-have.",src:"Regulation (EU) 2025/2650; European Commission review (May 2026)"},
- {q:"After the Omnibus I changes, which companies are covered by the EU’s supply chain due diligence law (CSDDD)?",opts:["Over 250 employees","Over 1,000 employees and €450 million turnover","Over 5,000 employees and €1.5 billion turnover","Every company importing into the EU"],ans:2,why:"The scope was cut sharply and obligations now start in July 2029. Climate transition plans were dropped from the law, and maximum penalties went from 5% to 3% of turnover.",int:"A sign of how quickly the political mood on these rules can shift: the scope was cut sharply, and the start date pushed back years.",src:"Omnibus I, Directive (EU) 2026/470"},
- {q:"In March 2021 the Ever Given blocked the Suez Canal for six days. Roughly how much trade was held up each day?",unit:"billion dollars",min:0.1,max:100,log:true,ans:9.6,ansText:"About $9.6 billion",why:"One ship stuck sideways froze a channel that carries a large share of world trade, and the knock-on delays rippled through ports for weeks.",int:"One ship, one canal, and the whole world felt it. A good reminder of how connected, and fragile, global shipping really is.",src:"Lloyd’s List estimate (2021)"},
- {q:"What share of world trade, by volume, travels by sea?",unit:"%",min:0,max:100,log:false,ans:80,ansText:"Over 80%",why:"Shipping is the backbone of global trade. That’s why trouble at sea hits supply chains so fast, and why cleaning up shipping fuel matters so much.",int:"Almost everything you own probably crossed an ocean to get to you.",src:"UNCTAD, Review of Maritime Transport"}
-];
-const FIN=[
- {q:"Since May 2025, what must an EU fund show to keep words like ‘ESG’ or ‘sustainable’ in its name?",opts:["At least 80% of its investments meet its stated ESG characteristics","At least 20% green holdings","One certified green bond","An annual sustainability report"],ans:0,why:"ESMA’s fund-naming guidelines also require fossil fuel exclusions for many terms. Morningstar estimated that at least 1,450 funds changed their names between January 2024 and mid-2025, most by dropping ESG words.",int:"If your fund’s name says ‘ESG,’ regulators now actually check that the money inside matches the label.",src:"ESMA guidelines on fund names; Morningstar (2025)"},
- {q:"In 2023 the US SEC fined DWS, Deutsche Bank’s asset manager, for overstating its ESG credentials. How much?",unit:"million dollars",min:1,max:100,log:true,ans:19,ansText:"$19 million",why:"It was the largest greenwashing penalty the SEC had imposed on an asset manager. It began when the firm’s former sustainability chief blew the whistle in 2021; police later raided its offices and the CEO resigned. German prosecutors added a €25 million fine in 2025.",int:"A reminder that saying sustainability is ‘in our DNA’ means nothing without the receipts to back it up.",src:"US SEC (Sept 2023); Frankfurt Public Prosecutor (April 2025)"},
- {q:"What happened to the UN-backed Net-Zero Banking Alliance in October 2025?",opts:["Its members voted to shut it down","It doubled in size","Its targets became legally binding","It merged with the ISSB"],ans:0,why:"Launched in 2021, it once counted around 140 banks. Major US banks left in early 2025 amid political pressure, others followed, and the remaining members voted to end it while keeping its guidance as a reference.",int:"A reminder that voluntary pledges can fall apart fast once the political wind changes, which is exactly why binding rules matter.",src:"Reuters; The Canadian Press (Oct 2025)"},
- {q:"After Omnibus I, which EU companies must publish sustainability reports under the CSRD?",opts:["Over 250 employees or €50 million turnover","Over 1,000 employees and over €450 million turnover","Only listed companies","Over 5,000 employees"],ans:1,why:"A company has to cross both thresholds. The original rules used far lower ones, so the number of companies in scope fell dramatically.",int:"A reminder that ‘who has to report’ keeps shifting as rules get rewritten, so the headline number isn’t always the whole story.",src:"Directive (EU) 2026/470 (Omnibus I)"},
- {q:"Around 50,000 companies were expected to report under the original CSRD. After Omnibus I, roughly how many?",unit:"companies",min:100,max:50000,log:true,ans:5000,ansText:"About 5,000",why:"That’s roughly a 90% cut in scope. Supporters call it cutting red tape; critics say investors lose a lot of data.",int:"Cutting red tape for companies also means investors, and the rest of us, see a lot less of what’s actually happening.",src:"Dcycle analysis of Omnibus I (2026)"},
- {q:"Between 2024 and 2025, holdings of TotalEnergies across EU ESG funds fell by about a quarter. What mainly drove it?",opts:["Fund-naming rules that require fossil fuel exclusions","A ban on French shares","TotalEnergies leaving the stock market","Lower oil prices"],ans:0,why:"To keep ESG-related names, many funds had to exclude companies earning significant revenue from fossil fuels, so they sold shares like TotalEnergies.",int:"One naming rule, and real money moved out of a major oil company’s shares. Rules like this have teeth.",src:"Morningstar (2025)"}
-];
-const POLICY=[
- {q:"Which of these is NOT one of the seven commodities covered by the EU Deforestation Regulation (EUDR)?",opts:["Palm oil","Coffee","Cotton","Rubber"],ans:2,why:"EUDR covers cattle, cocoa, coffee, palm oil, rubber, soy and wood, plus derived products like chocolate, furniture, leather and tyres. Cotton has its own major land and water footprint, but it isn’t on this particular list.",int:"A general ‘we don’t support deforestation’ promise isn’t enough anymore, companies now have to prove it, commodity by commodity.",src:"Regulation (EU) 2023/1115"},
- {q:"The EU’s revised Renewable Energy Directive (RED III) raised the bloc’s binding target for renewables’ share of final energy use by 2030 to at least what?",opts:["32%","42.5%","55%","100%"],ans:1,why:"RED III, adopted in 2023, lifted the EU-wide target from 32% under the previous directive to at least 42.5%, with an indicative extra push towards 45%. Each member state still sets its own national plan to get there.",int:"One shared EU target, but every country still gets to choose its own path to get there.",src:"Directive (EU) 2023/2413"},
- {q:"Which companies had to start CSRD sustainability reporting first, for the 2024 financial year?",opts:["Every company trading in the EU","Large companies already reporting under the older NFRD rules","Only banks and insurers","SMEs listed on EU exchanges"],ans:1,why:"CSRD phased itself in, starting with the roughly 50,000 large companies that already published non-financial statements under the older NFRD. Omnibus I later cut the scope sharply for the waves that were meant to follow.",int:"A reminder that these rules don’t arrive all at once, they phase in gradually, and the scope can still shrink along the way.",src:"Directive (EU) 2022/2464 (CSRD); Directive (EU) 2026/470 (Omnibus I)"},
- {q:"What is the main temperature goal of the 2015 Paris Agreement?",opts:["Keep warming well below 2°C, pursuing efforts to limit it to 1.5°C","Reach net zero emissions by 2030","Cut global emissions in half by 2020","Phase out all fossil fuel subsidies immediately"],ans:0,why:"Nearly every country signed on to this goal, measured against pre-industrial temperatures. The 1.5°C figure became the headline number after a landmark 2018 IPCC report on the difference between 1.5°C and 2°C of warming.",int:"This one number, 1.5°C, is the quiet anchor behind nearly every climate pledge and corporate ‘net zero’ target you’ll ever hear about.",src:"UNFCCC, Paris Agreement (2015)"},
- {q:"Which single country emits the most energy-related CO2 today?",opts:["United States","China","India","Russia"],ans:1,why:"China accounts for roughly 30% of global energy-related CO2 emissions today, more than the US and EU combined. Looked at differently, the US has released the most CO2 cumulatively since industrialisation, and several Gulf states top the per-person rankings.",int:"Who’s ‘most responsible’ depends entirely on how you count: by this year’s emissions, by history, or per person, each tells a different story.",src:"International Energy Agency (IEA); Global Carbon Project"},
- {q:"Which sector produces the single largest share of global greenhouse gas emissions?",opts:["Road transport","Agriculture and land use","Electricity and heat production","Aviation and shipping"],ans:2,why:"Generating electricity and heat, mostly by burning coal, gas and oil, accounts for roughly a quarter of global greenhouse gas emissions on its own, more than transport or agriculture individually.",int:"This is why cleaning up the power grid is treated as the single biggest lever in the fight against climate change.",src:"IPCC; International Energy Agency (IEA)"}
-];
-const BASICS=[
- {who:"planet",q:"How many litres of water go into making one pair of jeans?",unit:"litres",min:100,max:20000,log:true,ans:7500,ansText:"About 7,500 litres",why:"That’s roughly what one person drinks in seven years. Most of it goes into growing the cotton, the rest into dyeing and finishing.",tip:"Buying your next pair secondhand skips almost all of that.",src:"UN Environment Programme"},
- {who:"prosperity",q:"How much water does one flush of an older single-flush toilet use?",unit:"litres",min:0,max:20,log:false,ans:10,ansText:"Around 9 to 12 litres",why:"A modern dual-flush toilet uses about 3 litres for the small button and 6 for the big one. Older cisterns can use up to 13 litres, every single time.",tip:"Use the small button whenever you can. With an old toilet, a full water bottle placed in the cistern trims every flush.",src:"NI Water; Consumer NZ"},
- {who:"planet",q:"Swap one beef meal for a vegetarian one. How much CO2 does that save?",unit:"kg CO2",min:0.1,max:20,log:true,ans:6.75,ansText:"About 6.75 kg CO2e",why:"A typical meal with beef emits about 7.26 kg CO2e, a vegetarian meal about 0.51 kg. Even swapping a chicken meal (about 1.58 kg) saves around 1 kg.",tip:"Two vegetarian meals a week instead of beef adds up to roughly 700 kg CO2e a year.",src:"ADEME, Impact CO2"},
- {who:"planet",q:"How much water goes into producing 1 kg of beef?",unit:"litres",min:100,max:50000,log:true,ans:15400,ansText:"About 15,000 litres",why:"Most of it is the water needed to grow the animals’ feed over their lifetime. Most vegetables need a few hundred litres per kilo.",tip:"Swapping half the beef in a chilli or bolognese for lentils keeps the taste and cuts the footprint.",src:"Water Footprint Network"},
- {who:"prosperity",q:"How much water runs down the drain each minute if you leave the tap on while brushing your teeth?",unit:"litres",min:0,max:20,log:false,ans:6,ansText:"About 6 litres",why:"Two minutes, twice a day, is around 24 litres a day, nearly 9,000 litres a year, just to rinse a toothbrush.",tip:"Turn the tap off while you brush. That’s it.",src:"UK water industry figures"},
- {who:"people",q:"How many litres of water go into one cotton T-shirt?",unit:"litres",min:100,max:10000,log:true,ans:2700,ansText:"About 2,700 litres",why:"That’s about what one person drinks in two and a half years. Cotton is often grown in dry regions where farming communities compete for the same water.",tip:"Wear it longer, wash it cooler, and pass it on when you’re done.",src:"WWF"}
-];
-const TRACKS={
- mix:{name:"Everyday life",who:"planet",facts:(()=>{const b=[2,0,1,5,4,3].map(i=>BASICS[i]),f=[2,4,0,7,11,9,5,6,3,8,10,1].map(i=>FACTS[i]),o=[];for(let i=0;i<Math.max(b.length,f.length);i++){if(b[i])o.push(b[i]);if(f[i])o.push(f[i])}return o})()},
- pol:{name:"Policies",who:"planet",facts:POLICY},
- mkt:{name:"Marketing & greenwashing",who:"people",facts:MKT},
- sc:{name:"Supply chain & procurement",who:"prosperity",facts:SC},
- fin:{name:"ESG & finance",who:"prosperity",facts:FIN}
-};
-const CHECKED="November 2026";
-function TS(k){S.tr=S.tr||{};if(!S.tr[k]){S.tr[k]={done:[],stars:0,n:5,last:""};if(k==="life"&&S.factsDone&&S.factsDone.length){S.tr[k].done=S.factsDone.slice();S.tr[k].stars=S.stars||0;S.tr[k].n=Math.max(5,S.factsDone.length)}}return S.tr[k]}
-function unlocked(k){const st=TS(k),pool=TRACKS[k].facts.length;if(st.done.length>=st.n&&st.n<pool&&st.last&&st.last<today()){st.n=Math.min(pool,st.n+5);save()}return Math.min(st.n,pool)}
-let F={i:null};
-function fVal(f,pos){return f.log?f.min*Math.pow(f.max/f.min,pos/1000):f.min+(f.max-f.min)*pos/1000}
-function nice(v){if(v<10)return Math.round(v*10)/10;const p=Math.pow(10,Math.floor(Math.log10(v))-1);return Math.round(v/p)*p}
-function fmtN(v,f){return new Intl.NumberFormat("en").format(nice(v))+(f.unit==="%"?"%":" "+f.unit)}
-function vFacts(){
-  const el=document.getElementById("v-facts");
-  let CUR=S.curTrack&&TRACKS[S.curTrack]?S.curTrack:"mix";
-  const T=TRACKS[CUR],st=TS(CUR),n=unlocked(CUR),pool=T.facts.length;
-  const chips=Object.entries(TRACKS).map(([k,t])=>`<button class="chip${k===CUR?" on":""}" data-t="${k}">${t.name}</button>`).join("");
-  const head=`<h1>Did you know?</h1><p class="muted">Pick a topic, guess first, then see the real answer.</p><div class="chips">${chips}</div>
-    <div class="progress" style="margin-bottom:6px"><i style="width:${st.done.length/pool*100}%"></i></div><p class="small muted" style="margin:0 0 14px">${st.done.length} of ${pool} played in this topic, ${st.stars} ★ earned</p>`;
-  const bindChips=()=>{
-    el.querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>{S.curTrack=b.dataset.t;save();F={i:null};render()});
-    const activeChip=el.querySelector(".chip.on");
-    if(activeChip)activeChip.scrollIntoView({inline:"center",block:"nearest"});
-  };
-  if(F.i==null||F.t!==CUR){const left=[...Array(n).keys()].filter(k=>!st.done.includes(k));F={t:CUR,i:left.length?left[Math.floor(Math.random()*left.length)]:-1,pos:500,rev:false}}
-  if(F.i===-1){
-    const more=n<pool;
-    el.innerHTML=head+`<div class="qhead">${penny()}<div class="speech"><h2 style="font-size:1.25rem">${more?"That’s everything for today in this topic!":"You’ve played every fact in this topic!"}</h2><p class="small muted">${more?`${Math.min(5,pool-n)} new ones unlock tomorrow. Try another topic in the meantime.`:"New facts get added regularly. Try another topic in the meantime."}</p></div></div>`;
-    bindChips();return;
+let CHALLENGE_STATS={};
+function fetchChallengeStats(){
+  if(!sb)return;
+  sb.from("challenge_stats").select("*").then(({data})=>{
+    if(!data)return;
+    data.forEach(row=>{CHALLENGE_STATS[row.challenge_id]=row.joined_count});
+    if(location.hash.slice(1)==="challenges")vChallenges();
+  },()=>{});
+}
+function joinChallenge(ch){
+  startTry(ch.switchId,ch.days);
+  if(!S.challengesJoined.includes(ch.id)){
+    S.challengesJoined.push(ch.id);save();
+    if(sb)sb.rpc("join_challenge",{p_challenge_id:ch.id}).then(()=>{
+      CHALLENGE_STATS[ch.id]=(CHALLENGE_STATS[ch.id]||0)+1;
+      if(location.hash.slice(1)==="challenges")vChallenges();
+    },()=>{});
   }
-  const f=T.facts[F.i],c=CAST[f.who||T.who];
-  const record=()=>{if(!st.done.includes(F.i))st.done.push(F.i);st.stars+=F.stars;S.seeds+=F.stars;if(st.done.length>=unlocked(CUR))st.last=today();save();sfxByStars(F.stars);hapticByStars(F.stars);render();scrollTopReset()};
-  if(!F.rev){
-    if(f.opts){
-      el.innerHTML=head+`<div class="qhead">${c.svg()}<div class="speech"><h2 style="font-size:1.18rem">${f.q}</h2></div></div>
-        <div class="opts">${f.opts.map((o,k)=>`<button class="opt" data-k="${k}">${o}</button>`).join("")}</div>`;
-      el.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{F.pick=+b.dataset.k;F.stars=F.pick===f.ans?3:1;F.rev=true;record()});
-    }else{
-      el.innerHTML=head+`<div class="qhead">${c.svg()}<div class="speech"><h2 style="font-size:1.18rem">${f.q}</h2></div></div>
-        <div class="panel"><p class="small muted" style="text-align:center;margin:0">Your guess</p><div class="guess-val" id="gv">${fmtN(fVal(f,F.pos),f)}</div>
-        <input type="range" min="0" max="1000" value="${F.pos}" id="gs" aria-label="Your guess">
-        <div class="scale"><span>${fmtN(f.min,f)}</span><span>${fmtN(f.max,f)}</span></div>
-        <button class="btn wide" id="lock" style="margin-top:16px">Lock in my guess</button></div>`;
-      const gs=document.getElementById("gs"),gv=document.getElementById("gv");
-      gs.oninput=()=>{F.pos=+gs.value;gv.textContent=fmtN(fVal(f,F.pos),f)};
-      document.getElementById("lock").onclick=()=>{
-        const g=nice(Math.max(fVal(f,F.pos),f.log?f.min:0));let s;
-        if(f.log){const e=Math.abs(Math.log(Math.max(g,1e-9)/f.ans));s=e<Math.log(1.3)?3:e<Math.log(2.5)?2:1}
-        else{const d=Math.abs(g-f.ans);s=d<=4?3:d<=12?2:1}
-        F.stars=s;F.guess=g;F.rev=true;record();
-      };
-    }
-    bindChips();return;
-  }
-  let msg,ansText,yours;
-  if(f.opts){const ok=F.pick===f.ans;msg=ok?"Yes! Spot on.":"Not quite, but now you know!";ansText=f.opts[f.ans];yours=ok?`+3 seeds`:`You picked: ${f.opts[F.pick]}. +1 seed for playing`}
-  else{msg=F.stars===3?"Spot on! You really know your stuff.":F.stars===2?"Ooh, so close!":F.guess<f.ans?"Bigger than you thought, right?":"Smaller than you expected!";ansText=f.ansText;yours=`You guessed ${fmtN(F.guess,f)}, +${F.stars} seeds`}
-  const more=[...Array(unlocked(CUR)).keys()].some(k=>!st.done.includes(k));
-  el.innerHTML=head+`<div class="qhead">${c.svg()}<div class="speech"><h2 style="font-size:1.25rem">${msg}</h2></div></div>
-    <div class="panel reveal"><p class="small muted" style="margin:0">${f.q}</p><div class="ans" style="margin-top:10px;${f.opts?"font-size:1.5rem":""}">${ansText}</div>
-    <div class="stars" aria-label="${F.stars} of 3 stars">${"★".repeat(F.stars)}${"☆".repeat(3-F.stars)}</div>
-    <p class="small muted">${yours}</p></div>
-    <details class="panel why-more"><summary>Tell me more</summary><p>${f.why}</p>
-      ${f.tip?`<div class="try-this"><b>What you can do:</b> ${f.tip}</div>`:""}
-      ${f.int?`<div class="try-this"><b>Why it matters:</b> ${f.int}</div>`:""}
-      <p class="src">Source: ${f.src}${f.int?`. Last checked ${CHECKED}.`:""}</p></details>
-    <button class="btn wide" id="nextf">${more?"Next fact":"Done for now"}</button>`;
-  document.getElementById("nextf").onclick=()=>{F={i:null};render();scrollTopReset()};
-  bindChips();
+  vChallenges();
+}
+function vChallenges(){
+  const el=document.getElementById("v-challenges");
+  const t=today();
+  const season=activeSeason();
+  const cardsHTML=CHALLENGES.map(ch=>{
+    const sw=SW[ch.switchId],c=CAST[sw.pillar];
+    const trying=S.tries.find(x=>x.id===ch.switchId);
+    const kept=S.already.includes(ch.switchId);
+    const n=CHALLENGE_STATS[ch.id]||0;
+    const joinedText=n>0?`${new Intl.NumberFormat("en").format(n)} ${n===1?"person has":"people have"} joined`:"Be the first to join";
+    let actionHTML;
+    if(kept)actionHTML=`<span class="badge">You already do this. Lovely!</span>`;
+    else if(trying){
+      const day=Math.min(ch.days,dayDiff(trying.start,t)+1);
+      const doneToday=trying.hits.includes(t);
+      actionHTML=`<p class="small muted" style="margin:0 0 8px">Day ${day} of ${ch.days} &middot; <a href="#today">see your progress</a></p><button class="btn sm" data-check="${ch.switchId}">${doneToday?"I did it again":"I did it today"}</button>`;
+    }else actionHTML=`<button class="btn sm" data-join="${ch.id}">Join this challenge</button>`;
+    return `<div class="panel sw">
+      <div class="top"><span style="font-size:2rem;line-height:1">${ch.emoji}</span><div><h3>${ch.title}</h3><p class="small">${sw.how}</p></div></div>
+      <div class="impact"><span class="pill ${sw.pillar}">${c.label}</span><span class="small muted">${joinedText}</span></div>
+      <div class="actions">${actionHTML}</div>
+    </div>`;
+  }).join("");
+  el.innerHTML=`<h1>Challenges</h1><p class="muted">Pick one, join in, and see who else is doing it with you.</p>
+    ${season?`<div class="panel invite season"><div class="row"><span style="font-size:1.8rem">${season.emoji}</span><div><h3>${season.title}</h3><p class="small">${season.blurb}</p></div></div></div>`:""}
+    ${cardsHTML}
+    <p class="foot">Finish a challenge and keep it going from Today, or let it go, no pressure either way.</p>`;
+  el.querySelectorAll("[data-join]").forEach(b=>b.onclick=()=>joinChallenge(CHALLENGES.find(c=>c.id===b.dataset.join)));
+  el.querySelectorAll("[data-check]").forEach(b=>b.onclick=()=>{checkIn(b.dataset.check);vChallenges()});
 }
 
 /* ask the crew */
 const SUGGEST_URL=""; // paste your free Tally or Google Form link here to collect unanswered questions
 const ASK=[
+ {cat:"compare",q:"Paper bag or plastic bag?",kw:["paper bag","plastic bag","shopping bag","tote bag","reusable bag"],
+  chat:[["planet","A paper bag takes more energy and water to make and is heavier to ship, even though it breaks down faster if it escapes into nature. A UK Environment Agency study found a paper bag needs to be reused about 3 to 4 times, and a cotton tote 50 to 150 times, to beat a single-use plastic bag's overall footprint."],["people","Plastic bags are the bigger litter and ocean problem, since they don't break down and can harm wildlife for decades."],["prosperity","Whatever bag you already own costs nothing extra to reuse. Buying a new 'better' bag for every trip defeats the point."],],
+  take:"The bag that wins is the one already in your hand, used again. Keep a couple by the door and grab one on your way out.",src:"UK Environment Agency, Life Cycle Assessment of Supermarket Carrier Bags (2011)"},
+ {cat:"compare",q:"New clothes or secondhand?",kw:["new clothes","secondhand clothes","thrift","vintage","buy clothes","fast fashion"],
+  chat:[["planet","A new cotton T-shirt emits roughly 5 kg of CO2 and uses about 2,700 litres of water to grow and process. Buying it secondhand skips almost all of that, since the footprint was already spent."],["people","Cotton is often grown in dry regions where farming communities compete for the same water, and garment wages are usually a small slice of the price tag."],["prosperity","Secondhand is almost always cheaper, and resale apps make finding specific sizes or brands easier than it used to be."]],
+  take:"Secondhand first, for anything you can find that way. New is for when secondhand genuinely isn't an option.",src:"WWF; Clean Clothes Campaign; see 'Buy an item of clothing secondhand'"},
+ {cat:"compare",q:"Train or a short flight?",kw:["train or flight","train vs plane","short flight","train instead of flying"],
+  chat:[["planet","Moving the same distance, a plane emits roughly 50 times more CO2 per tonne than a ship, and short-haul flights are especially inefficient since so much fuel burns just taking off and climbing. The train usually wins by a wide margin on routes under about 5 hours."],["people","Airports and flight paths concentrate noise and air pollution around the people who live near them."],["prosperity","Trains are often door-to-door competitive in time once you count airport transfers and check-in, and ticket prices can go either way depending on how early you book."]],
+  take:"For anything under about 5 hours by rail, take the train. It's rarely a close call.",src:"Our World in Data, freight emissions; ADEME"},
+ {cat:"compare",q:"Meat meal or plant-based meal?",kw:["meat or vegetarian","meat vs plant based","vegetarian meal","vegan meal","beef or veggie"],
+  chat:[["planet","A typical beef meal emits about 7.26 kg CO2e, a chicken meal about 1.58 kg, and a vegetarian meal about 0.51 kg. Swapping even one beef meal a week for a vegetarian one adds up fast."],["people","Less land given over to grazing and feed crops leaves more for people and wildlife, though farming jobs tied to livestock matter too."],["prosperity","Plant-based meals are usually the cheaper option per portion, lentils and beans especially."]],
+  take:"You don't have to go all-in. Two vegetarian meals a week instead of beef saves roughly 700 kg CO2e a year, with zero drama.",src:"ADEME, Impact CO2"},
+ {cat:"compare",q:"Dishwasher or washing by hand?",kw:["dishwasher","hand wash dishes","washing up","wash dishes"],
+  chat:[["planet","A full, efficient dishwasher typically uses less water and energy than washing the same load by hand under a running tap, counter-intuitive as that sounds."],["people","Less hot water heated means less strain on the grid at peak times, which matters more in places leaning on fossil-fuel power."],["prosperity","Running it only when full, on an eco cycle, keeps the cost per load low. Half-loads and pre-rinsing under the tap erase the advantage."]],
+  take:"If you have one, use it, full and on eco mode. If you're washing by hand, fill a basin rather than leaving the tap running.",src:"Energy Saving Trust"},
+ {cat:"compare",q:"Buy in bulk or smaller packs?",kw:["buy in bulk","bulk buying","smaller packs","family size"],
+  chat:[["planet","Bulk packaging usually means less plastic and cardboard per portion, since one bigger container replaces several small ones."],["people","Less packaging to produce means less demand on the people and places that extract the raw materials for it."],["prosperity","Bulk is cheaper per unit, but only a saving if you actually use it all. Food that spoils before you finish it costs more than buying small ever would."]],
+  take:"Bulk is usually better, for things you reliably get through. For anything you might waste, smaller is the safer choice.",src:"FAO; UNEP, Food Waste Index"},
+
  {cat:"buy",q:"Should I buy a new phone or a refurbished one?",kw:["phone","smartphone","iphone","samsung","refurbished","upgrade","mobile","new phone"],
   chat:[["planet","Most of a phone’s lifetime footprint comes from making it, not charging it. A refurbished phone skips almost all of that."],["people","New phones need mined metals like cobalt, and some of it comes from mines with child labour. Every phone kept in use means a little less digging."],["prosperity","Refurbished phones often cost far less and usually come with a warranty. And if yours just needs a new battery or screen, repairing is cheaper still."]],
   take:"Keep the one you have as long as it works for you. When it’s time to change, go refurbished.",src:"ADEME; Amnesty International (2016)"},
@@ -1026,6 +973,7 @@ function vAsk(){
     <div class="cast" style="margin:6px 0 4px">${moss()}${juno()}${penny()}</div>
     <form class="ask-box" id="ask-form"><input id="ask-in" type="text" placeholder="e.g. Should I buy a refurbished phone?" aria-label="Your question" value="${esc(ASKQ.text)}" autocomplete="off"><button class="btn" type="submit">Ask</button></form>
     ${body}
+    <div class="section-title"><h3>Which is more sustainable?</h3></div><div class="qchips">${chipsFor("compare")}</div>
     <div class="section-title"><h3>Thinking of buying…</h3></div><div class="qchips">${chipsFor("buy")}</div>
     <div class="section-title"><h3>Bigger topics</h3></div><div class="qchips">${chipsFor("big")}</div>
     <p class="foot">The questions below are written by the Ripple team from public sources. Ask anything else and the crew will think it through live.</p>`;
@@ -1110,7 +1058,7 @@ function vGarden(){
 
 /* ---------- router ---------- */
 function scrollTopReset(){const a=document.querySelector(".app");if(a)a.scrollTop=0}
-const ROUTES=["today","quiz","switches","facts","ask","garden"];
+const ROUTES=["today","quiz","switches","challenges","ask","garden"];
 function render(){
   let r=location.hash.slice(1);if(!ROUTES.includes(r))r="today";
   ROUTES.forEach(x=>document.getElementById("v-"+x).classList.toggle("on",x===r));
@@ -1118,7 +1066,7 @@ function render(){
   document.querySelectorAll("nav.tabs a").forEach(a=>a.classList.toggle("on",a.dataset.r===r));
   document.querySelector("nav.tabs").style.display=r==="quiz"?"none":"";
   document.querySelector(".topbar").style.display=r==="quiz"?"none":"";
-  if(r==="today")vToday();if(r==="quiz")vQuiz();if(r==="switches")vSwitches();if(r==="garden")vGarden();if(r==="facts")vFacts();if(r==="ask")vAsk();
+  if(r==="today")vToday();if(r==="quiz")vQuiz();if(r==="switches")vSwitches();if(r==="garden")vGarden();if(r==="challenges")vChallenges();if(r==="ask")vAsk();
   renderAcctBadge();
 }
 function renderAcctBadge(){
@@ -1385,18 +1333,10 @@ function mergeStates(local,account){
   out.inviteSnooze=(local.inviteSnooze||"")>(account.inviteSnooze||"")?local.inviteSnooze:account.inviteSnooze;
   out.signinSnooze=(local.signinSnooze||"")>(account.signinSnooze||"")?local.signinSnooze:account.signinSnooze;
   out.installSnooze=(local.installSnooze||"")>(account.installSnooze||"")?local.installSnooze:account.installSnooze;
-  out.factsDone=Array.from(new Set([...(local.factsDone||[]),...(account.factsDone||[])]));
   out.seasonsSeen=Array.from(new Set([...(local.seasonsSeen||[]),...(account.seasonsSeen||[])]));
-  out.stars=Math.max(local.stars||0,account.stars||0);
   out.dailyRead=(local.dailyRead||"")>(account.dailyRead||"")?local.dailyRead:account.dailyRead;
   out.asked=Array.from(new Set([...(local.asked||[]),...(account.asked||[])]));
-  out.curTrack=local.curTrack||account.curTrack;
-  const tr={},topics=new Set([...Object.keys(local.tr||{}),...Object.keys(account.tr||{})]);
-  topics.forEach(k=>{
-    const l=(local.tr||{})[k]||{done:[],stars:0,n:5,last:""},a=(account.tr||{})[k]||{done:[],stars:0,n:5,last:""};
-    tr[k]={done:Array.from(new Set([...(l.done||[]),...(a.done||[])])),stars:Math.max(l.stars||0,a.stars||0),n:Math.max(l.n||5,a.n||5),last:(l.last||"")>(a.last||"")?l.last:a.last};
-  });
-  out.tr=tr;
+  out.challengesJoined=Array.from(new Set([...(local.challengesJoined||[]),...(account.challengesJoined||[])]));
   return out;
 }
 async function loadOrMergeFromCloud(){
@@ -1465,6 +1405,7 @@ window.addEventListener("beforeinstallprompt",(e)=>{e.preventDefault();deferredI
 window.addEventListener("appinstalled",()=>{deferredInstallPrompt=null;closeInstallToast()});
 setTimeout(()=>{installToastTimerDone=true;maybeShowInstallToast()},20000);
 fetchGlobalStats();
+fetchChallengeStats();
 maybeRefreshAQI();
 (()=>{const ac=getAQICache();if(ac&&ac.status==="ok"&&ac.city)fetchCityStats(ac.city,ac.country)})();
 
