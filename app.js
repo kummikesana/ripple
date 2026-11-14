@@ -291,41 +291,46 @@ function initEcoZoom(){
   if(!wrap||!inner)return;
   ECO_ZOOM={scale:1,tx:0,ty:0};
   applyEcoZoom(wrap,inner);
-  const pts=new Map();
-  let pinchDist0=null,pinchScale0=null;
-  wrap.addEventListener("pointerdown",e=>{
-    pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
-    wrap.setPointerCapture(e.pointerId);
-    if(pts.size===2){
-      const [a,b]=[...pts.values()];
-      pinchDist0=Math.hypot(a.x-b.x,a.y-b.y);
-      pinchScale0=ECO_ZOOM.scale;
+  /* Plain Touch Events, not Pointer Events: multi-touch pinch recognition
+     via touch-action + Pointer Events has real cross-browser rough edges
+     (notably WebKit/iOS Safari), where the browser's own gesture capture
+     can swallow or mis-deliver the second finger. Touch Events with
+     touch-action:none is the long-established, reliable pattern for a
+     custom pinch gesture; the "see more" button is the way past this full-
+     screen view, so losing native single-finger scroll-through here is a
+     fine trade for pinch actually working. */
+  let g=null; // {dist,scale0} for a 2-finger gesture, or {x,y} for 1-finger pan
+  const tpts=ts=>Array.from(ts).map(t=>({x:t.clientX,y:t.clientY}));
+  wrap.addEventListener("touchstart",e=>{
+    if(e.touches.length===2){
+      const [a,b]=tpts(e.touches);
+      g={dist:Math.hypot(a.x-b.x,a.y-b.y),scale0:ECO_ZOOM.scale};
+    }else if(e.touches.length===1){
+      g={x:e.touches[0].clientX,y:e.touches[0].clientY};
     }
-  });
-  wrap.addEventListener("pointermove",e=>{
-    if(!pts.has(e.pointerId))return;
-    const prev=pts.get(e.pointerId);
-    pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
-    if(pts.size===2&&pinchDist0){
+  },{passive:true});
+  wrap.addEventListener("touchmove",e=>{
+    if(e.touches.length===2&&g&&g.dist){
       e.preventDefault();
       const rect=wrap.getBoundingClientRect();
-      const [a,b]=[...pts.values()];
+      const [a,b]=tpts(e.touches);
       const dist=Math.hypot(a.x-b.x,a.y-b.y);
-      const newScale=pinchScale0*(dist/pinchDist0);
-      zoomEcoToPoint(wrap,inner,newScale,(a.x+b.x)/2-rect.left,(a.y+b.y)/2-rect.top);
-    }else if(pts.size===1&&ECO_ZOOM.scale>1.02){
+      zoomEcoToPoint(wrap,inner,g.scale0*(dist/g.dist),(a.x+b.x)/2-rect.left,(a.y+b.y)/2-rect.top);
+    }else if(e.touches.length===1&&ECO_ZOOM.scale>1.02&&g&&g.x!=null){
       e.preventDefault();
-      ECO_ZOOM.tx+=e.clientX-prev.x;
-      ECO_ZOOM.ty+=e.clientY-prev.y;
+      const t=e.touches[0];
+      ECO_ZOOM.tx+=t.clientX-g.x;ECO_ZOOM.ty+=t.clientY-g.y;
+      g={x:t.clientX,y:t.clientY};
       applyEcoZoom(wrap,inner);
     }
-    /* at default zoom, a single finger does nothing here and the browser's
-       own vertical scroll (touch-action:pan-y) takes over, same as any other
-       page content: no fighting the page for a swipe that isn't a pinch. */
   },{passive:false});
-  const release=e=>{pts.delete(e.pointerId);if(pts.size<2){pinchDist0=null;pinchScale0=null}};
-  wrap.addEventListener("pointerup",release);
-  wrap.addEventListener("pointercancel",release);
+  const regrip=e=>{
+    if(e.touches.length===2){const [a,b]=tpts(e.touches);g={dist:Math.hypot(a.x-b.x,a.y-b.y),scale0:ECO_ZOOM.scale}}
+    else if(e.touches.length===1){g={x:e.touches[0].clientX,y:e.touches[0].clientY}}
+    else g=null;
+  };
+  wrap.addEventListener("touchend",regrip);
+  wrap.addEventListener("touchcancel",regrip);
   wrap.addEventListener("wheel",e=>{
     if(!e.ctrlKey)return;
     e.preventDefault();

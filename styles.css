@@ -136,7 +136,7 @@ details p{font-size:.88rem;color:var(--muted)}
 .opt{text-align:left;border:2px solid var(--line);background:var(--surface);border-radius:16px;padding:14px 16px;font-weight:700;box-shadow:0 3px 0 var(--line)}
 .opt:active{transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
 .eco-hero{position:relative;margin:-14px -16px 0;background:var(--surface2);overflow:hidden}
-.eco-zoom-wrap{width:100%;height:100%;cursor:grab;overflow:hidden;touch-action:pan-y}
+.eco-zoom-wrap{width:100%;height:100%;cursor:grab;overflow:hidden;touch-action:none}
 .eco-zoom-wrap:active{cursor:grabbing}
 .eco-zoom-inner{width:100%;height:100%;transform-origin:0 0;will-change:transform}
 .eco-zoom-inner svg{width:100%;height:100%;display:block}
