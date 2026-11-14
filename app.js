@@ -221,39 +221,40 @@ function plantBodyOnly(pillar,L){
 }
 function seededRand(seed){const x=Math.sin(seed*999)*10000;return x-Math.floor(x)}
 function ecosystemScene(counts,sky){
-  const W=960,H=360,zoneW=W/3;
+  const W=480,bandH=260,H=bandH*3;
   const zones=[
-    {key:"planet",cx:zoneW*0.5,fill:"var(--teal)"},
-    {key:"people",cx:zoneW*1.5,fill:"var(--coral)"},
-    {key:"prosperity",cx:zoneW*2.5,fill:"var(--sun)"}
+    {key:"planet",y:0,fill:"var(--teal)"},
+    {key:"people",y:bandH,fill:"var(--coral)"},
+    {key:"prosperity",y:bandH*2,fill:"var(--sun)"}
   ];
   let g=`<rect x="0" y="0" width="${W}" height="${H}" fill="var(--surface2)"/>`;
-  if(sky){
-    g+=`<rect x="0" y="0" width="${zoneW}" height="${H}" fill="${sky.color}"/>`;
-    if(sky.aqi>=151)g+=`<g opacity=".3" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M70 50 h60M230 36 h70M110 76 h50"/></g>`;
-  }
-  g+=`<ellipse cx="${W/2}" cy="${H-30}" rx="${W/2-10}" ry="30" fill="var(--grass)"/>`;
-  zones.forEach(z=>{g+=`<ellipse cx="${z.cx}" cy="${H-40}" rx="${zoneW/2-16}" ry="56" fill="${z.fill}" opacity=".12"/>`});
   zones.forEach((z,zi)=>{
     const c=CAST[z.key];
-    g+=`<g transform="translate(${z.cx-34} 10) scale(.56)">${c.svg().replace(/<\/?svg[^>]*>/g,"")}</g>`;
-    g+=`<text x="${z.cx}" y="78" text-anchor="middle" font-family="'Baloo 2',system-ui,sans-serif" font-weight="700" font-size="20" fill="var(--ink)">${c.label}</text>`;
+    g+=`<rect x="0" y="${z.y}" width="${W}" height="${bandH}" fill="${z.fill}" opacity=".12"/>`;
+    if(z.key==="planet"&&sky){
+      g+=`<rect x="0" y="${z.y}" width="${W}" height="${bandH}" fill="${sky.color}" opacity=".55"/>`;
+      if(sky.aqi>=151)g+=`<g opacity=".3" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M50 ${z.y+36} h70M250 ${z.y+28} h80M130 ${z.y+54} h60"/></g>`;
+    }
+    g+=`<ellipse cx="${W/2}" cy="${z.y+bandH-26}" rx="${W/2-6}" ry="24" fill="var(--grass)"/>`;
+    g+=`<g transform="translate(${W/2-34} ${z.y+10}) scale(.56)">${c.svg().replace(/<\/?svg[^>]*>/g,"")}</g>`;
+    g+=`<text x="${W/2}" y="${z.y+78}" text-anchor="middle" font-family="'Baloo 2',system-ui,sans-serif" font-weight="700" font-size="20" fill="var(--ink)">${c.label}</text>`;
     const n=Math.min(14,counts[z.key]);
+    const baseY=z.y+bandH-44;
     if(n===0){
-      g+=`<g transform="translate(${z.cx} ${H-58}) scale(1.1)"><g transform="translate(-60,-84)">${plotSeed()}</g></g>`;
+      g+=`<g transform="translate(${W/2} ${baseY}) scale(1.1)"><g transform="translate(-60,-84)">${plotSeed()}</g></g>`;
     }else{
-      const spread=zoneW*0.72;
+      const spread=W*0.76;
       for(let i=0;i<n;i++){
         const r1=seededRand(zi*97+i*13+1),r2=seededRand(zi*97+i*13+2),r3=seededRand(zi*97+i*13+3);
-        const x=z.cx-spread/2+r1*spread;
-        const y=(H-58)-r2*18;
+        const x=W/2-spread/2+r1*spread;
+        const y=baseY-r2*16;
         const scale=(n>8?0.5:0.66)+r3*0.16;
         const rot=(r1-0.5)*16;
         g+=`<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${rot.toFixed(1)}) scale(${scale.toFixed(2)})"><g transform="translate(-60,-84)">${plantBodyOnly(z.key,2)}</g></g>`;
       }
     }
   });
-  return `<svg viewBox="0 0 ${W} ${H}" aria-hidden="true">${g}</svg>`;
+  return `<svg viewBox="0 0 ${W} ${H}" aria-hidden="true" preserveAspectRatio="xMidYMid meet">${g}</svg>`;
 }
 let ECO_ZOOM={scale:1,tx:0,ty:0};
 function clampEcoZoom(wrap,inner){
@@ -267,7 +268,7 @@ function clampEcoZoom(wrap,inner){
 function applyEcoZoom(wrap,inner){
   clampEcoZoom(wrap,inner);
   inner.style.transform=`translate(${ECO_ZOOM.tx}px,${ECO_ZOOM.ty}px) scale(${ECO_ZOOM.scale})`;
-  const reset=wrap.parentElement.querySelector(".eco-reset");
+  const reset=document.getElementById("eco-reset");
   if(reset)reset.hidden=ECO_ZOOM.scale<=1.02;
 }
 function initEcoZoom(){
@@ -289,6 +290,7 @@ function initEcoZoom(){
     const prev=pts.get(e.pointerId);
     pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
     if(pts.size===2&&pinchStart){
+      e.preventDefault();
       const [a,b]=[...pts.values()];
       const dist=Math.hypot(a.x-b.x,a.y-b.y);
       ECO_ZOOM.scale=pinchStart.scale*(dist/pinchStart.dist);
@@ -297,11 +299,15 @@ function initEcoZoom(){
       ECO_ZOOM.ty=pinchStart.ty+(mid.y-pinchStart.mid.y);
       applyEcoZoom(wrap,inner);
     }else if(pts.size===1&&ECO_ZOOM.scale>1.02){
+      e.preventDefault();
       ECO_ZOOM.tx+=e.clientX-prev.x;
       ECO_ZOOM.ty+=e.clientY-prev.y;
       applyEcoZoom(wrap,inner);
     }
-  });
+    /* at default zoom, a single finger does nothing here and the browser's
+       own vertical scroll (touch-action:pan-y) takes over, same as any other
+       page content: no fighting the page for a swipe that isn't a pinch. */
+  },{passive:false});
   const release=e=>{pts.delete(e.pointerId);if(pts.size<2)pinchStart=null};
   wrap.addEventListener("pointerup",release);
   wrap.addEventListener("pointercancel",release);
@@ -312,7 +318,7 @@ function initEcoZoom(){
     applyEcoZoom(wrap,inner);
   },{passive:false});
   wrap.addEventListener("dblclick",()=>{ECO_ZOOM={scale:1,tx:0,ty:0};applyEcoZoom(wrap,inner)});
-  const resetBtn=wrap.parentElement.querySelector(".eco-reset");
+  const resetBtn=document.getElementById("eco-reset");
   if(resetBtn)resetBtn.onclick=()=>{ECO_ZOOM={scale:1,tx:0,ty:0};applyEcoZoom(wrap,inner)};
 }
 
@@ -1027,51 +1033,58 @@ function vGarden(){
     return `<div><b>${n}</b><span class="small muted">${c.label}, ${PLOT_STAGE_NAMES[lv].toLowerCase()}</span></div>`;
   }).join("");
   el.innerHTML=`
-    <h1>My garden</h1>
-    <div class="scene ripple-anim">${treeSVG(L)}</div>
-    <h2>${LEVEL_NAMES[L]}</h2>
-    <p class="muted">${S.seeds} seeds${next?`. ${next-S.seeds} more and it grows again.`:". Your grove is in full bloom!"}</p>
-    <button class="btn ghost sm" id="share-garden">Share my garden</button>
-    <div class="recap" style="margin:14px 0">
-      <div><b>${S.logs.length}</b><span class="small muted">good choices</span></div>
-      <div><b>${S.finished}</b><span class="small muted">tries finished</span></div>
-      <div><b>${S.already.length}</b><span class="small muted">habits you keep</span></div>
-    </div>
-    <div class="panel"><h3>Your ecosystem</h3><p class="small muted" style="margin:0 0 10px">One garden, three pillars. Pinch or scroll to zoom in, drag to look around.</p>
-      <div class="eco-zoom-outer">
-        <div class="eco-zoom-wrap" id="eco-zoom-wrap"><div class="eco-zoom-inner" id="eco-zoom-inner">${ecosystemScene(counts,sky)}</div></div>
-        <button class="eco-reset" hidden aria-label="Reset zoom">⤾</button>
+    <div class="eco-hero" id="eco-hero">
+      <div class="eco-zoom-wrap" id="eco-zoom-wrap"><div class="eco-zoom-inner" id="eco-zoom-inner">${ecosystemScene(counts,sky)}</div></div>
+      <div class="eco-hero-top">
+        <span class="eco-pill">${LEVEL_NAMES[L]} · ${S.seeds} seeds</span>
+        <div class="eco-icon-row">
+          <button class="eco-icon-btn" id="share-garden" aria-label="Share my garden">⇪</button>
+          <button class="eco-icon-btn" id="eco-reset" hidden aria-label="Reset zoom">⤾</button>
+        </div>
       </div>
-      <div class="recap" style="margin-top:12px">${statsHTML}</div>
-      ${aqiOk?`<p class="small muted" style="margin-top:8px">AQI ${aqiCache.aqi} · ${aqiCache.category} today${aqiCache.city?` in ${esc(aqiCache.city)}`:""}</p>`:`<button class="link small" id="aqi-ask" style="padding:2px;margin-top:8px">Show today’s air</button>`}
+      <div class="eco-hero-bottom">
+        <div class="eco-stats">${statsHTML}</div>
+        <button class="eco-more" id="eco-more" aria-label="See more below">⌄</button>
+      </div>
+    </div>
+    <div style="padding:16px 16px 0">
+      ${aqiOk?`<p class="small muted">AQI ${aqiCache.aqi} · ${aqiCache.category} today${aqiCache.city?` in ${esc(aqiCache.city)}`:""}</p>`:`<button class="link small" id="aqi-ask" style="padding:2px">Show today’s air</button>`}
       ${suggestion?`<p class="small" style="margin-top:12px"><b>${CAST[weakestKey].label}</b> could use some attention. Here’s an idea:</p>${swCard(suggestion)}`:""}
-    </div>
-    ${GLOBAL_STATS?`<div class="panel"><h3>Together</h3><p class="small muted" style="margin:0 0 8px">Every Ripple grower, added up</p>
-      <div class="recap">
-        <div><b>${new Intl.NumberFormat("en").format(GLOBAL_STATS.total_logs)}</b><span class="small muted">good choices</span></div>
-        <div><b>${new Intl.NumberFormat("en").format(Math.round(GLOBAL_STATS.total_co2))} kg</b><span class="small muted">CO2 avoided</span></div>
+      <div class="recap" style="margin:16px 0">
+        <div><b>${S.logs.length}</b><span class="small muted">good choices</span></div>
+        <div><b>${S.finished}</b><span class="small muted">tries finished</span></div>
+        <div><b>${S.already.length}</b><span class="small muted">habits you keep</span></div>
       </div>
-    </div>`:""}
-    ${CITY_STATS?`<div class="panel"><h3>Together in ${esc(CITY_STATS.city)}</h3><p class="small muted" style="margin:0 0 8px">Everyone nearby who's opted into today's air, added up. Not a leaderboard, just good company.</p>
-      <div class="recap">
-        <div><b>${new Intl.NumberFormat("en").format(CITY_STATS.total_logs)}</b><span class="small muted">good choices</span></div>
-        <div><b>${new Intl.NumberFormat("en").format(Math.round(CITY_STATS.total_co2))} kg</b><span class="small muted">CO2 avoided</span></div>
-      </div>
-    </div>`:""}
-    ${aqiOk&&refCities&&refCities.cities.length?`<div class="panel"><h3>How does your air compare?</h3><p class="small muted" style="margin:0 0 10px">Air quality index today, from a handful of cities around the world. Lower is cleaner.</p>
-      <div class="aqi-compare">${[{name:aqiCache.city||"Your city",aqi:aqiCache.aqi,category:aqiCache.category,mine:true},...refCities.cities].sort((a,b)=>a.aqi-b.aqi).map(c=>`<div class="aqi-row${c.mine?" mine":""}"><span class="aqi-dot" style="background:${aqiColor(c.aqi)}"></span><b>${esc(c.name)}</b>${c.mine?` <span class="small muted">(you)</span>`:""}<span class="small muted" style="margin-left:auto">${c.aqi} · ${c.category}</span></div>`).join("")}</div>
-    </div>`:""}
-    ${S.already.length?`<div class="panel"><h3>Habits you keep</h3><div class="already">${S.already.map(id=>`<span class="pill ${SW[id].pillar}">${SW[id].title}</span>`).join("")}</div></div>`:""}
-    <div class="panel"><h3>Your stage</h3><p class="small muted">Set from your quiz answers. Retake the quiz if it doesn’t feel right anymore.</p>
-      <div class="stages">${STAGES.map((s,i)=>`<div class="stage${S.stage===i?" on":""}" aria-current="${S.stage===i}">${treeSVG([0,1,2,5][i],{mini:true})}${s.name}</div>`).join("")}</div>
-      ${S.stage!=null?`<p class="small">${STAGES[stage()].line}</p>`:""}
-      <div class="actions"><a class="btn ghost sm" href="#quiz" id="redo">${S.quizDone?"Retake the quiz":"Take the quiz"}</a></div>
+      ${GLOBAL_STATS?`<div class="panel"><h3>Together</h3><p class="small muted" style="margin:0 0 8px">Every Ripple grower, added up</p>
+        <div class="recap">
+          <div><b>${new Intl.NumberFormat("en").format(GLOBAL_STATS.total_logs)}</b><span class="small muted">good choices</span></div>
+          <div><b>${new Intl.NumberFormat("en").format(Math.round(GLOBAL_STATS.total_co2))} kg</b><span class="small muted">CO2 avoided</span></div>
+        </div>
+      </div>`:""}
+      ${CITY_STATS?`<div class="panel"><h3>Together in ${esc(CITY_STATS.city)}</h3><p class="small muted" style="margin:0 0 8px">Everyone nearby who's opted into today's air, added up. Not a leaderboard, just good company.</p>
+        <div class="recap">
+          <div><b>${new Intl.NumberFormat("en").format(CITY_STATS.total_logs)}</b><span class="small muted">good choices</span></div>
+          <div><b>${new Intl.NumberFormat("en").format(Math.round(CITY_STATS.total_co2))} kg</b><span class="small muted">CO2 avoided</span></div>
+        </div>
+      </div>`:""}
+      ${aqiOk&&refCities&&refCities.cities.length?`<div class="panel"><h3>How does your air compare?</h3><p class="small muted" style="margin:0 0 10px">Air quality index today, from a handful of cities around the world. Lower is cleaner.</p>
+        <div class="aqi-compare">${[{name:aqiCache.city||"Your city",aqi:aqiCache.aqi,category:aqiCache.category,mine:true},...refCities.cities].sort((a,b)=>a.aqi-b.aqi).map(c=>`<div class="aqi-row${c.mine?" mine":""}"><span class="aqi-dot" style="background:${aqiColor(c.aqi)}"></span><b>${esc(c.name)}</b>${c.mine?` <span class="small muted">(you)</span>`:""}<span class="small muted" style="margin-left:auto">${c.aqi} · ${c.category}</span></div>`).join("")}</div>
+      </div>`:""}
+      ${S.already.length?`<div class="panel"><h3>Habits you keep</h3><div class="already">${S.already.map(id=>`<span class="pill ${SW[id].pillar}">${SW[id].title}</span>`).join("")}</div></div>`:""}
+      <div class="scene ripple-anim">${treeSVG(L)}</div>
+      <p class="muted" style="text-align:center">${next?`${next-S.seeds} seeds more and your grove grows again.`:"Your grove is in full bloom!"}</p>
     </div>`;
   el.querySelectorAll("[data-try]").forEach(b=>b.onclick=()=>{const [id,d]=b.dataset.try.split("|");startTry(id,+d)});
   el.querySelectorAll("[data-log]").forEach(b=>b.onclick=()=>logIt(b.dataset.log));
   const aqiAsk=document.getElementById("aqi-ask");if(aqiAsk)aqiAsk.onclick=requestAQI;
   document.getElementById("share-garden").onclick=shareGardenCard;
-  document.getElementById("redo").onclick=()=>{Q={i:0,ans:[]};RES=null};
+  const hero=document.getElementById("eco-hero");
+  const appEl=document.querySelector(".app");
+  hero.style.height=Math.max(420,appEl.clientHeight-36)+"px";
+  document.getElementById("eco-more").onclick=()=>{
+    const reduced=matchMedia("(prefers-reduced-motion: reduce)").matches;
+    appEl.scrollTo({top:hero.offsetHeight,behavior:reduced?"auto":"smooth"});
+  };
   initEcoZoom();
 }
 
@@ -1161,11 +1174,17 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&document.getElement
 function renderSettingsBody(){
   const el=document.getElementById("settings-body");
   el.innerHTML=`<h2 id="settings-h" style="text-align:center">Settings</h2>
+    <div class="panel"><h3>Your stage</h3><p class="small muted">Set from your quiz answers. Retake the quiz if it doesn’t feel right anymore.</p>
+      <div class="stages">${STAGES.map((s,i)=>`<div class="stage${S.stage===i?" on":""}" aria-current="${S.stage===i}">${treeSVG([0,1,2,5][i],{mini:true})}${s.name}</div>`).join("")}</div>
+      ${S.stage!=null?`<p class="small">${STAGES[stage()].line}</p>`:""}
+      <div class="actions"><a class="btn ghost sm" href="#quiz" id="redo">${S.quizDone?"Retake the quiz":"Take the quiz"}</a></div>
+    </div>
     <div class="panel"><h3>Text size</h3><p class="small muted" style="margin:0 0 10px">Make everything in Ripple a bit bigger, if that’s easier to read.</p>
       <div class="textsize">${TEXT_SCALES.map(v=>`<button class="tsize${getTextScale()===v?" on":""}" data-textscale="${v}" aria-pressed="${getTextScale()===v}" style="font-size:${14+v*4}px">A</button>`).join("")}</div>
     </div>
     <div class="panel">${isSignedIn()?`<h3>Account</h3><p class="small">Saved to <b>${esc(AUTH.user.email)}</b>. It’ll follow you to any device you sign into.</p><div class="actions"><button class="btn ghost sm" id="acct-signout">Sign out</button><button class="link small" id="acct-delete">Delete my account</button></div>`:`<h3>Keep this safe</h3><p class="small muted">Sign in and your garden follows you to any device. Totally optional, nothing changes if you skip it.</p><button class="btn sm" id="acct-signin">Sign in</button>`}</div>
     <p class="foot"><button class="link" id="reset">Start over</button><br>${isSignedIn()?"Saved to your account, and on this device.":"Everything is saved on this device only."}<br><a href="privacy.html">Privacy</a></p>`;
+  document.getElementById("redo").onclick=()=>{closeSettings();Q={i:0,ans:[]};RES=null};
   el.querySelectorAll("[data-textscale]").forEach(b=>b.onclick=()=>{
     const v=+b.dataset.textscale;
     localStorage.setItem("ripple-text-scale",v);
