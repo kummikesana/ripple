@@ -212,16 +212,109 @@ function plantProsperity(L){
   if(L===4)g+=`<path d="M60 84 V46" stroke="var(--bark)" stroke-width="3.5" stroke-linecap="round"/>`+leafPair(60,70,1.05)+leafPair(60,59,1)+leafPair(60,48,.9)+leafPair(60,39,.75)+`<circle cx="45" cy="78" r="4.4" fill="var(--sun)"/><circle cx="76" cy="74" r="3.6" fill="var(--sun)"/>`;
   return g;
 }
-function plotSVG(pillar,L,sky){
-  const draw=pillar==="planet"?plantPlanet:pillar==="people"?plantPeople:plantProsperity;
-  let bg="";
-  if(sky){
-    bg=`<rect x="0" y="0" width="120" height="90" fill="${sky.color}"/>`;
-    if(sky.aqi>=151)bg+=`<g opacity=".35" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M10 20 h26M74 14 h30M18 34 h22"/></g>`;
-  }
-  return `<svg viewBox="0 0 120 100" aria-hidden="true">${bg}${draw(L)}</svg>`;
-}
 function plotLevel(n){let l=0;PLOT_LEVELS.forEach((t,i)=>{if(n>=t)l=i});return l}
+
+/* ---------- combined ecosystem scene (one zoomable garden, three zones) ---------- */
+function plantBodyOnly(pillar,L){
+  const draw=pillar==="planet"?plantPlanet:pillar==="people"?plantPeople:plantProsperity;
+  return draw(L).replace('<ellipse cx="60" cy="88" rx="46" ry="9" fill="var(--grass)"/>',"");
+}
+function seededRand(seed){const x=Math.sin(seed*999)*10000;return x-Math.floor(x)}
+function ecosystemScene(counts,sky){
+  const W=960,H=360,zoneW=W/3;
+  const zones=[
+    {key:"planet",cx:zoneW*0.5,fill:"var(--teal)"},
+    {key:"people",cx:zoneW*1.5,fill:"var(--coral)"},
+    {key:"prosperity",cx:zoneW*2.5,fill:"var(--sun)"}
+  ];
+  let g=`<rect x="0" y="0" width="${W}" height="${H}" fill="var(--surface2)"/>`;
+  if(sky){
+    g+=`<rect x="0" y="0" width="${zoneW}" height="${H}" fill="${sky.color}"/>`;
+    if(sky.aqi>=151)g+=`<g opacity=".3" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M70 50 h60M230 36 h70M110 76 h50"/></g>`;
+  }
+  g+=`<ellipse cx="${W/2}" cy="${H-30}" rx="${W/2-10}" ry="30" fill="var(--grass)"/>`;
+  zones.forEach(z=>{g+=`<ellipse cx="${z.cx}" cy="${H-40}" rx="${zoneW/2-16}" ry="56" fill="${z.fill}" opacity=".12"/>`});
+  zones.forEach((z,zi)=>{
+    const c=CAST[z.key];
+    g+=`<g transform="translate(${z.cx-34} 10) scale(.56)">${c.svg().replace(/<\/?svg[^>]*>/g,"")}</g>`;
+    g+=`<text x="${z.cx}" y="78" text-anchor="middle" font-family="'Baloo 2',system-ui,sans-serif" font-weight="700" font-size="20" fill="var(--ink)">${c.label}</text>`;
+    const n=Math.min(14,counts[z.key]);
+    if(n===0){
+      g+=`<g transform="translate(${z.cx} ${H-58}) scale(1.1)"><g transform="translate(-60,-84)">${plotSeed()}</g></g>`;
+    }else{
+      const spread=zoneW*0.72;
+      for(let i=0;i<n;i++){
+        const r1=seededRand(zi*97+i*13+1),r2=seededRand(zi*97+i*13+2),r3=seededRand(zi*97+i*13+3);
+        const x=z.cx-spread/2+r1*spread;
+        const y=(H-58)-r2*18;
+        const scale=(n>8?0.5:0.66)+r3*0.16;
+        const rot=(r1-0.5)*16;
+        g+=`<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${rot.toFixed(1)}) scale(${scale.toFixed(2)})"><g transform="translate(-60,-84)">${plantBodyOnly(z.key,2)}</g></g>`;
+      }
+    }
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" aria-hidden="true">${g}</svg>`;
+}
+let ECO_ZOOM={scale:1,tx:0,ty:0};
+function clampEcoZoom(wrap,inner){
+  const maxS=3.5;
+  ECO_ZOOM.scale=Math.min(maxS,Math.max(1,ECO_ZOOM.scale));
+  const w=wrap.clientWidth,h=wrap.clientHeight;
+  const overX=Math.max(0,w*ECO_ZOOM.scale-w)/2,overY=Math.max(0,h*ECO_ZOOM.scale-h)/2;
+  ECO_ZOOM.tx=Math.min(overX,Math.max(-overX,ECO_ZOOM.tx));
+  ECO_ZOOM.ty=Math.min(overY,Math.max(-overY,ECO_ZOOM.ty));
+}
+function applyEcoZoom(wrap,inner){
+  clampEcoZoom(wrap,inner);
+  inner.style.transform=`translate(${ECO_ZOOM.tx}px,${ECO_ZOOM.ty}px) scale(${ECO_ZOOM.scale})`;
+  const reset=wrap.parentElement.querySelector(".eco-reset");
+  if(reset)reset.hidden=ECO_ZOOM.scale<=1.02;
+}
+function initEcoZoom(){
+  const wrap=document.getElementById("eco-zoom-wrap"),inner=document.getElementById("eco-zoom-inner");
+  if(!wrap||!inner)return;
+  applyEcoZoom(wrap,inner);
+  const pts=new Map();
+  let pinchStart=null;
+  wrap.addEventListener("pointerdown",e=>{
+    pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    wrap.setPointerCapture(e.pointerId);
+    if(pts.size===2){
+      const [a,b]=[...pts.values()];
+      pinchStart={dist:Math.hypot(a.x-b.x,a.y-b.y),scale:ECO_ZOOM.scale,mid:{x:(a.x+b.x)/2,y:(a.y+b.y)/2},tx:ECO_ZOOM.tx,ty:ECO_ZOOM.ty};
+    }
+  });
+  wrap.addEventListener("pointermove",e=>{
+    if(!pts.has(e.pointerId))return;
+    const prev=pts.get(e.pointerId);
+    pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(pts.size===2&&pinchStart){
+      const [a,b]=[...pts.values()];
+      const dist=Math.hypot(a.x-b.x,a.y-b.y);
+      ECO_ZOOM.scale=pinchStart.scale*(dist/pinchStart.dist);
+      const mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2};
+      ECO_ZOOM.tx=pinchStart.tx+(mid.x-pinchStart.mid.x);
+      ECO_ZOOM.ty=pinchStart.ty+(mid.y-pinchStart.mid.y);
+      applyEcoZoom(wrap,inner);
+    }else if(pts.size===1&&ECO_ZOOM.scale>1.02){
+      ECO_ZOOM.tx+=e.clientX-prev.x;
+      ECO_ZOOM.ty+=e.clientY-prev.y;
+      applyEcoZoom(wrap,inner);
+    }
+  });
+  const release=e=>{pts.delete(e.pointerId);if(pts.size<2)pinchStart=null};
+  wrap.addEventListener("pointerup",release);
+  wrap.addEventListener("pointercancel",release);
+  wrap.addEventListener("wheel",e=>{
+    if(!e.ctrlKey)return;
+    e.preventDefault();
+    ECO_ZOOM.scale*=Math.pow(1.01,-e.deltaY);
+    applyEcoZoom(wrap,inner);
+  },{passive:false});
+  wrap.addEventListener("dblclick",()=>{ECO_ZOOM={scale:1,tx:0,ty:0};applyEcoZoom(wrap,inner)});
+  const resetBtn=wrap.parentElement.querySelector(".eco-reset");
+  if(resetBtn)resetBtn.onclick=()=>{ECO_ZOOM={scale:1,tx:0,ty:0};applyEcoZoom(wrap,inner)};
+}
 
 /* ---------- shareable garden card ---------- */
 /* Always rendered in the light palette, regardless of the viewer's current
@@ -928,18 +1021,10 @@ function vGarden(){
   const aqiCache=getAQICache();
   const aqiOk=aqiCache&&aqiCache.status==="ok";
   const refCities=aqiOk?getRefCitiesCache():null;
-  const plotsHTML=plotKeys.map(k=>{
-    const c=CAST[k],n=counts[k],lv=plotLevel(n),nextT=PLOT_LEVELS[lv+1];
-    const sky=k==="planet"&&aqiOk?{color:aqiColor(aqiCache.aqi),aqi:aqiCache.aqi}:null;
-    const air=k==="planet"?(aqiOk?`<p class="small muted">AQI ${aqiCache.aqi} · ${aqiCache.category} today${aqiCache.city?` in ${esc(aqiCache.city)}`:""}</p>`:`<button class="link small" id="aqi-ask" style="padding:2px">Show today’s air</button>`):"";
-    return `<div class="plot${k===weakestKey&&showNudge?" weak":""}" data-pillar="${k}">
-      <div class="mini">${plotSVG(k,lv,sky)}</div>
-      <div style="width:28px;margin:0 auto">${c.svg()}</div>
-      <b>${c.label}</b>
-      <p class="small muted">${PLOT_STAGE_NAMES[lv]}</p>
-      <p class="small muted">${n} choice${n===1?"":"s"}${nextT?`, ${nextT-n} to grow`:""}</p>
-      ${air}
-    </div>`;
+  const sky=aqiOk?{color:aqiColor(aqiCache.aqi),aqi:aqiCache.aqi}:null;
+  const statsHTML=plotKeys.map(k=>{
+    const c=CAST[k],n=counts[k],lv=plotLevel(n);
+    return `<div><b>${n}</b><span class="small muted">${c.label}, ${PLOT_STAGE_NAMES[lv].toLowerCase()}</span></div>`;
   }).join("");
   el.innerHTML=`
     <h1>My garden</h1>
@@ -951,6 +1036,15 @@ function vGarden(){
       <div><b>${S.logs.length}</b><span class="small muted">good choices</span></div>
       <div><b>${S.finished}</b><span class="small muted">tries finished</span></div>
       <div><b>${S.already.length}</b><span class="small muted">habits you keep</span></div>
+    </div>
+    <div class="panel"><h3>Your ecosystem</h3><p class="small muted" style="margin:0 0 10px">One garden, three pillars. Pinch or scroll to zoom in, drag to look around.</p>
+      <div class="eco-zoom-outer">
+        <div class="eco-zoom-wrap" id="eco-zoom-wrap"><div class="eco-zoom-inner" id="eco-zoom-inner">${ecosystemScene(counts,sky)}</div></div>
+        <button class="eco-reset" hidden aria-label="Reset zoom">⤾</button>
+      </div>
+      <div class="recap" style="margin-top:12px">${statsHTML}</div>
+      ${aqiOk?`<p class="small muted" style="margin-top:8px">AQI ${aqiCache.aqi} · ${aqiCache.category} today${aqiCache.city?` in ${esc(aqiCache.city)}`:""}</p>`:`<button class="link small" id="aqi-ask" style="padding:2px;margin-top:8px">Show today’s air</button>`}
+      ${suggestion?`<p class="small" style="margin-top:12px"><b>${CAST[weakestKey].label}</b> could use some attention. Here’s an idea:</p>${swCard(suggestion)}`:""}
     </div>
     ${GLOBAL_STATS?`<div class="panel"><h3>Together</h3><p class="small muted" style="margin:0 0 8px">Every Ripple grower, added up</p>
       <div class="recap">
@@ -964,10 +1058,6 @@ function vGarden(){
         <div><b>${new Intl.NumberFormat("en").format(Math.round(CITY_STATS.total_co2))} kg</b><span class="small muted">CO2 avoided</span></div>
       </div>
     </div>`:""}
-    <div class="panel"><h3>Your ecosystem</h3><p class="small muted" style="margin:0 0 10px">Each plot grows from the choices you log in that pillar</p>
-      <div class="plots">${plotsHTML}</div>
-      ${suggestion?`<p class="small" style="margin-top:12px"><b>${CAST[weakestKey].label}</b> could use some attention. Here’s an idea:</p>${swCard(suggestion)}`:""}
-    </div>
     ${aqiOk&&refCities&&refCities.cities.length?`<div class="panel"><h3>How does your air compare?</h3><p class="small muted" style="margin:0 0 10px">Air quality index today, from a handful of cities around the world. Lower is cleaner.</p>
       <div class="aqi-compare">${[{name:aqiCache.city||"Your city",aqi:aqiCache.aqi,category:aqiCache.category,mine:true},...refCities.cities].sort((a,b)=>a.aqi-b.aqi).map(c=>`<div class="aqi-row${c.mine?" mine":""}"><span class="aqi-dot" style="background:${aqiColor(c.aqi)}"></span><b>${esc(c.name)}</b>${c.mine?` <span class="small muted">(you)</span>`:""}<span class="small muted" style="margin-left:auto">${c.aqi} · ${c.category}</span></div>`).join("")}</div>
     </div>`:""}
@@ -976,26 +1066,13 @@ function vGarden(){
       <div class="stages">${STAGES.map((s,i)=>`<div class="stage${S.stage===i?" on":""}" aria-current="${S.stage===i}">${treeSVG([0,1,2,5][i],{mini:true})}${s.name}</div>`).join("")}</div>
       ${S.stage!=null?`<p class="small">${STAGES[stage()].line}</p>`:""}
       <div class="actions"><a class="btn ghost sm" href="#quiz" id="redo">${S.quizDone?"Retake the quiz":"Take the quiz"}</a></div>
-    </div>
-    <div class="panel"><h3>Text size</h3><p class="small muted" style="margin:0 0 10px">Make everything in Ripple a bit bigger, if that’s easier to read.</p>
-      <div class="textsize">${TEXT_SCALES.map(v=>`<button class="tsize${getTextScale()===v?" on":""}" data-textscale="${v}" aria-pressed="${getTextScale()===v}" style="font-size:${14+v*4}px">A</button>`).join("")}</div>
-    </div>
-    <div class="panel">${isSignedIn()?`<h3>Account</h3><p class="small">Saved to <b>${esc(AUTH.user.email)}</b>. It’ll follow you to any device you sign into.</p><div class="actions"><button class="btn ghost sm" id="acct-signout">Sign out</button><button class="link small" id="acct-delete">Delete my account</button></div>`:`<h3>Keep this safe</h3><p class="small muted">Sign in and your garden follows you to any device. Totally optional, nothing changes if you skip it.</p><button class="btn sm" id="acct-signin">Sign in</button>`}</div>
-    <p class="foot"><button class="link" id="reset">Start over</button><br>${isSignedIn()?"Saved to your account, and on this device.":"Everything is saved on this device only."}<br><a href="privacy.html">Privacy</a></p>`;
+    </div>`;
   el.querySelectorAll("[data-try]").forEach(b=>b.onclick=()=>{const [id,d]=b.dataset.try.split("|");startTry(id,+d)});
   el.querySelectorAll("[data-log]").forEach(b=>b.onclick=()=>logIt(b.dataset.log));
   const aqiAsk=document.getElementById("aqi-ask");if(aqiAsk)aqiAsk.onclick=requestAQI;
   document.getElementById("share-garden").onclick=shareGardenCard;
-  el.querySelectorAll("[data-textscale]").forEach(b=>b.onclick=()=>{
-    const v=+b.dataset.textscale;
-    localStorage.setItem("ripple-text-scale",v);
-    applyTextScale(v);
-  });
   document.getElementById("redo").onclick=()=>{Q={i:0,ans:[]};RES=null};
-  document.getElementById("reset").onclick=()=>{if(confirm("Start over? This clears your garden, tries and choices on this device.")){S=defaults();save();location.hash="today";render()}};
-  const asi=document.getElementById("acct-signin");if(asi)asi.onclick=openSignIn;
-  const aso=document.getElementById("acct-signout");if(aso)aso.onclick=signOut;
-  const adl=document.getElementById("acct-delete");if(adl)adl.onclick=deleteAccount;
+  initEcoZoom();
 }
 
 /* ---------- router ---------- */
@@ -1018,11 +1095,11 @@ function renderAcctBadge(){
   if(signedIn){
     b.innerHTML="";b.textContent=(AUTH.user.email||"?")[0].toUpperCase();
     b.setAttribute("aria-label","Account: "+AUTH.user.email);
-    b.onclick=()=>{location.hash="garden"};
+    b.onclick=openSettings;
   }else{
     b.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>`;
-    b.setAttribute("aria-label","Sign in");
-    b.onclick=openSignIn;
+    b.setAttribute("aria-label","Settings");
+    b.onclick=openSettings;
   }
 }
 window.addEventListener("hashchange",()=>{if(location.hash==="#quiz"&&Q.i>=QUIZ.length&&!RES){Q={i:0,ans:[]}}render();scrollTopReset()});
@@ -1053,8 +1130,8 @@ function closeSignIn(){
   document.getElementById("signin-card").style.transform="";
   maybeShowInstallToast();
 }
-(()=>{
-  const card=document.getElementById("signin-card"),grabber=document.getElementById("signin-grabber");
+function wireSheetDrag(cardId,grabberId,closeFn){
+  const card=document.getElementById(cardId),grabber=document.getElementById(grabberId);
   let startY=0,dragY=0,dragging=false;
   grabber.addEventListener("pointerdown",e=>{
     dragging=true;startY=e.clientY;dragY=0;
@@ -1070,14 +1147,49 @@ function closeSignIn(){
     if(!dragging)return;
     dragging=false;
     card.classList.remove("dragging");
-    if(dragY>90)closeSignIn();else card.style.transform="";
+    if(dragY>90)closeFn();else card.style.transform="";
   };
   grabber.addEventListener("pointerup",release);
   grabber.addEventListener("pointercancel",release);
-})();
+}
+wireSheetDrag("signin-card","signin-grabber",closeSignIn);
 document.getElementById("signin-close").onclick=closeSignIn;
 document.getElementById("signin").addEventListener("click",e=>{if(e.target.id==="signin")closeSignIn()});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&document.getElementById("signin").classList.contains("on"))closeSignIn()});
+
+/* ---------- settings sheet: text size, account, start over, privacy ---------- */
+function renderSettingsBody(){
+  const el=document.getElementById("settings-body");
+  el.innerHTML=`<h2 id="settings-h" style="text-align:center">Settings</h2>
+    <div class="panel"><h3>Text size</h3><p class="small muted" style="margin:0 0 10px">Make everything in Ripple a bit bigger, if that’s easier to read.</p>
+      <div class="textsize">${TEXT_SCALES.map(v=>`<button class="tsize${getTextScale()===v?" on":""}" data-textscale="${v}" aria-pressed="${getTextScale()===v}" style="font-size:${14+v*4}px">A</button>`).join("")}</div>
+    </div>
+    <div class="panel">${isSignedIn()?`<h3>Account</h3><p class="small">Saved to <b>${esc(AUTH.user.email)}</b>. It’ll follow you to any device you sign into.</p><div class="actions"><button class="btn ghost sm" id="acct-signout">Sign out</button><button class="link small" id="acct-delete">Delete my account</button></div>`:`<h3>Keep this safe</h3><p class="small muted">Sign in and your garden follows you to any device. Totally optional, nothing changes if you skip it.</p><button class="btn sm" id="acct-signin">Sign in</button>`}</div>
+    <p class="foot"><button class="link" id="reset">Start over</button><br>${isSignedIn()?"Saved to your account, and on this device.":"Everything is saved on this device only."}<br><a href="privacy.html">Privacy</a></p>`;
+  el.querySelectorAll("[data-textscale]").forEach(b=>b.onclick=()=>{
+    const v=+b.dataset.textscale;
+    localStorage.setItem("ripple-text-scale",v);
+    applyTextScale(v);
+    renderSettingsBody();
+  });
+  document.getElementById("reset").onclick=()=>{if(confirm("Start over? This clears your garden, tries and choices on this device.")){closeSettings();S=defaults();save();location.hash="today";render()}};
+  const asi=document.getElementById("acct-signin");if(asi)asi.onclick=()=>{closeSettings();openSignIn()};
+  const aso=document.getElementById("acct-signout");if(aso)aso.onclick=()=>{closeSettings();signOut()};
+  const adl=document.getElementById("acct-delete");if(adl)adl.onclick=deleteAccount;
+}
+function openSettings(){
+  renderSettingsBody();
+  document.getElementById("settings-card").style.transform="";
+  document.getElementById("settings").classList.add("on");
+}
+function closeSettings(){
+  document.getElementById("settings").classList.remove("on");
+  document.getElementById("settings-card").style.transform="";
+}
+wireSheetDrag("settings-card","settings-grabber",closeSettings);
+document.getElementById("settings-close").onclick=closeSettings;
+document.getElementById("settings").addEventListener("click",e=>{if(e.target.id==="settings")closeSettings()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&document.getElementById("settings").classList.contains("on"))closeSettings()});
 
 function signOut(){
   const removeLocal=confirm("Remove this garden from this device too? Choose Cancel to keep it here as a guest garden.");

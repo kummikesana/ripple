@@ -135,16 +135,12 @@ details p{font-size:.88rem;color:var(--muted)}
 .opts{display:grid;gap:10px}
 .opt{text-align:left;border:2px solid var(--line);background:var(--surface);border-radius:16px;padding:14px 16px;font-weight:700;box-shadow:0 3px 0 var(--line)}
 .opt:active{transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
-.plots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.plot{border:2px solid var(--line);background:var(--surface);border-radius:14px;padding:10px 6px 12px;text-align:center}
-.plot .mini{width:100%;height:50px;margin-bottom:2px}
-.plot .mini svg{width:100%;height:100%;display:block}
-.plot b{font-family:"Baloo 2",system-ui,sans-serif;font-size:.92rem;display:block}
-.plot p{margin:1px 0 0}
-.plot[data-pillar="planet"]{background:color-mix(in srgb,var(--teal) 10%,var(--surface))}
-.plot[data-pillar="people"]{background:color-mix(in srgb,var(--coral) 12%,var(--surface))}
-.plot[data-pillar="prosperity"]{background:color-mix(in srgb,var(--sun) 14%,var(--surface))}
-.plot.weak{border-color:var(--sun);border-style:dashed}
+.eco-zoom-outer{position:relative}
+.eco-zoom-wrap{aspect-ratio:960/360;border-radius:18px;overflow:hidden;background:var(--surface2);touch-action:none;cursor:grab;border:2px solid var(--line)}
+.eco-zoom-wrap:active{cursor:grabbing}
+.eco-zoom-inner{width:100%;height:100%;transform-origin:center center;will-change:transform}
+.eco-zoom-inner svg{width:100%;height:100%;display:block}
+.eco-reset{position:absolute;top:10px;right:10px;width:38px;height:38px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--ink);font-size:1.1rem;box-shadow:0 2px 0 var(--line)}
 .textsize{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .tsize{border:2px solid var(--line);background:var(--surface);border-radius:14px;padding:10px 4px;font-weight:800;color:var(--ink);min-height:44px}
 .tsize.on{border-color:var(--teal);background:color-mix(in srgb,var(--teal) 15%,var(--surface));color:var(--teal)}
